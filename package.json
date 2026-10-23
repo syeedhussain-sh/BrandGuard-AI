@@ -1,0 +1,28 @@
+{
+  "name": "brandguard-ai-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BrandGuard AI — Intelligent Universal Multi-Industry Brand Governance Platform",
+  "main": "Brand Guard AI-Backend/backend/dist/server.js",
+  "scripts": {
+    "build:engine": "npm --prefix \"Brandguard AI-Engine Analysis/BrandGuard-Analysis\" run build",
+    "build:frontend": "npm --prefix \"Brandguard AI - Fe/frontend\" run build",
+    "build:backend": "npm --prefix \"Brand Guard AI-Backend/backend\" run build",
+    "build": "npm run build:engine && npm run build:frontend && npm run build:backend",
+    "start": "npm --prefix \"Brand Guard AI-Backend/backend\" run start",
+    "dev:backend": "npm --prefix \"Brand Guard AI-Backend/backend\" run dev",
+    "dev:frontend": "npm --prefix \"Brandguard AI - Fe/frontend\" run dev",
+    "test:engine": "npm --prefix \"Brandguard AI-Engine Analysis/BrandGuard-Analysis\" test",
+    "test:backend": "npm --prefix \"Brand Guard AI-Backend/backend\" test",
+    "test": "npm run test:engine && npm run test:backend"
+  },
+  "keywords": [
+    "brandguard",
+    "brand-governance",
+    "compliance",
+    "ai",
+    "marketing-audit"
+  ],
+  "author": "BrandGuard AI Team",
+  "license": "ISC"
+}

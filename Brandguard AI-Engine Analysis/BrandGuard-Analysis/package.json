@@ -1,0 +1,28 @@
+{
+  "name": "@brandguard/analysis-engine",
+  "version": "1.0.0",
+  "description": "Deterministic brand compliance analysis engine for BrandGuard AI",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "demo": "node dist/demo.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "brandguard",
+    "compliance",
+    "brand-safety",
+    "analysis-engine",
+    "rule-engine"
+  ],
+  "author": "BrandGuard AI Team - Member 3",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.3"
+  }
+}

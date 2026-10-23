@@ -1,0 +1,78 @@
+[
+  {
+    "id": "demo-brand",
+    "name": "NovaTech",
+    "description": "Updated description for testing.",
+    "tone": [
+      "professional",
+      "innovative"
+    ],
+    "guidelines": {
+      "terminology": [
+        {
+          "preferred": "NovaTech Cloud Platform",
+          "discouraged": [
+            "Nova Cloud",
+            "NovaTech CP",
+            "NT Cloud"
+          ],
+          "explanation": "Always refer to our core offering by its complete official brand name."
+        },
+        {
+          "preferred": "Autonomous Intelligence",
+          "discouraged": [
+            "Bot",
+            "Robot",
+            "Script"
+          ],
+          "explanation": "Reflect modern AI terminology in customer-facing communication."
+        }
+      ],
+      "restrictedPhrases": [
+        {
+          "phrase": "100% bug-free",
+          "severity": "high",
+          "explanation": "Absolute reliability claims violate compliance policies.",
+          "suggestion": "engineered for high reliability and resilience"
+        },
+        {
+          "phrase": "cheapest cloud in the market",
+          "severity": "high",
+          "explanation": "Unsubstantiated pricing superlatives are prohibited.",
+          "suggestion": "cost-effective, high-performance cloud infrastructure"
+        },
+        {
+          "phrase": "obviously",
+          "severity": "medium",
+          "explanation": "Condescending tone undermines accessible brand voice.",
+          "suggestion": "as demonstrated"
+        }
+      ],
+      "requiredTerms": [
+        {
+          "term": "NovaTech",
+          "context": "Brand name must be mentioned explicitly at least once in public announcements.",
+          "severity": "medium",
+          "explanation": "Brand name must be mentioned explicitly at least once."
+        }
+      ],
+      "claimVerification": [
+        {
+          "claimPattern": "guarantee(s|d)?",
+          "severity": "high",
+          "explanation": "Guarantees require explicit legal team approval and SLA references.",
+          "suggestion": "commit to high availability under our standard SLA"
+        }
+      ],
+      "toneRules": [
+        {
+          "bannedWordOrStyle": "obviously",
+          "suggestion": "as demonstrated",
+          "explanation": "Condescending tone undermines accessible brand voice."
+        }
+      ]
+    },
+    "createdAt": "2026-10-22T00:00:00.000Z",
+    "updatedAt": "2026-10-22T08:58:41.585Z"
+  }
+]

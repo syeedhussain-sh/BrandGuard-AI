@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "name": "brandguard-ai",
+  "builds": [
+    {
+      "src": "Brand Guard AI-Backend/backend/dist/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "Brand Guard AI-Backend/backend/dist/server.js"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "Brandguard AI - Fe/frontend/dist/assets/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "Brand Guard AI-Backend/backend/dist/server.js"
+    }
+  ]
+}

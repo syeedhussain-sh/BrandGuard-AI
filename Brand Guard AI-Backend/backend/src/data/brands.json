@@ -1,0 +1,123 @@
+[
+  {
+    "id": "demo-brand",
+    "name": "NovaTech",
+    "description": "Updated description for testing.",
+    "tone": [
+      "professional",
+      "innovative"
+    ],
+    "guidelines": {
+      "terminology": [
+        {
+          "preferred": "NovaTech Cloud Platform",
+          "discouraged": [
+            "Nova Cloud",
+            "NovaTech CP",
+            "NT Cloud"
+          ],
+          "explanation": "Always refer to our core offering by its complete official brand name."
+        },
+        {
+          "preferred": "Autonomous Intelligence",
+          "discouraged": [
+            "Bot",
+            "Robot",
+            "Script"
+          ],
+          "explanation": "Reflect modern AI terminology in customer-facing communication."
+        },
+        {
+          "preferred": "AI Co-pilot",
+          "discouraged": [
+            "AI assistant"
+          ],
+          "explanation": "Use AI Co-pilot for product features."
+        },
+        {
+          "preferred": "Enterprise Partner",
+          "discouraged": [
+            "client",
+            "customer"
+          ],
+          "explanation": "Customer relationships are strategic enterprise partnerships."
+        },
+        {
+          "preferred": "cost-effective",
+          "discouraged": [
+            "cheap"
+          ],
+          "explanation": "Use cost-effective for pricing and ROI discussions."
+        }
+      ],
+      "restrictedPhrases": [
+        {
+          "phrase": "100% bug-free",
+          "severity": "high",
+          "explanation": "Absolute reliability claims violate compliance policies.",
+          "suggestion": "engineered for high reliability and resilience"
+        },
+        {
+          "phrase": "cheapest cloud in the market",
+          "severity": "high",
+          "explanation": "Unsubstantiated pricing superlatives are prohibited.",
+          "suggestion": "cost-effective, high-performance cloud infrastructure"
+        },
+        {
+          "phrase": "obviously",
+          "severity": "medium",
+          "explanation": "Condescending tone undermines accessible brand voice.",
+          "suggestion": "as demonstrated"
+        },
+        {
+          "phrase": "guaranteed 100% bug-free",
+          "severity": "high",
+          "explanation": "Absolute reliability claims violate compliance policies.",
+          "suggestion": "engineered for high reliability and resilience"
+        },
+        {
+          "phrase": "can never fail",
+          "severity": "high",
+          "explanation": "Absolute claims without SLA violate compliance policies.",
+          "suggestion": "engineered for fault-tolerant resilience"
+        }
+      ],
+      "requiredTerms": [
+        {
+          "term": "NovaTech",
+          "context": "Any public press release or product announcement",
+          "severity": "medium",
+          "explanation": "Brand name must be mentioned explicitly at least once."
+        },
+        {
+          "term": "Enterprise-grade",
+          "context": "Product capabilities",
+          "severity": "low",
+          "explanation": "Highlight enterprise reliability tier."
+        }
+      ],
+      "claimVerification": [
+        {
+          "claimPattern": "guarantee(s|d)?",
+          "severity": "high",
+          "explanation": "Guarantees require explicit legal team approval and SLA references.",
+          "suggestion": "commit to high availability under our standard SLA"
+        }
+      ],
+      "toneRules": [
+        {
+          "bannedWordOrStyle": "miraculous",
+          "suggestion": "empirically verified",
+          "explanation": "Avoid hyperbole and sensationalism in product announcements."
+        },
+        {
+          "bannedWordOrStyle": "magic",
+          "suggestion": "algorithmic",
+          "explanation": "Enterprise AI systems are deterministic and audited, not magic."
+        }
+      ]
+    },
+    "createdAt": "2026-10-22T00:00:00.000Z",
+    "updatedAt": "2026-10-23T15:36:45.036Z"
+  }
+]

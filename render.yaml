@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: brandguard-ai
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install --prefix "Brandguard AI-Engine Analysis/BrandGuard-Analysis" && npm install --prefix "Brand Guard AI-Backend/backend" && npm install --prefix "Brandguard AI - Fe/frontend" && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: CORS_ORIGIN
+        value: "*"
