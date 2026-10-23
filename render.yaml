@@ -4,7 +4,7 @@ services:
     env: node
     plan: free
     region: oregon
-    buildCommand: npm install --prefix "Brandguard AI-Engine Analysis/BrandGuard-Analysis" && npm install --prefix "Brand Guard AI-Backend/backend" && npm install --prefix "Brandguard AI - Fe/frontend" && npm run build
+    buildCommand: npm install --include=dev --prefix "Brandguard AI-Engine Analysis/BrandGuard-Analysis" && npm install --include=dev --prefix "Brand Guard AI-Backend/backend" && npm install --include=dev --prefix "Brandguard AI - Fe/frontend" && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV

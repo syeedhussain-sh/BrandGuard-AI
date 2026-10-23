@@ -12,13 +12,13 @@ const genericBrandChecker_js_1 = require("./engine/genericBrandChecker.js");
 const brandMismatchChecker_js_1 = require("./engine/brandMismatchChecker.js");
 const contentCorrector_js_1 = require("./engine/contentCorrector.js");
 const utils_js_1 = require("./engine/utils.js");
-const crypto_1 = require("crypto");
+const node_crypto_1 = require("node:crypto");
 /**
  * Helper to generate a contract-compliant analysisId (e.g. anlz_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d).
  */
 function createAnalysisId() {
     try {
-        return `anlz_${(0, crypto_1.randomUUID)()}`;
+        return `anlz_${(0, node_crypto_1.randomUUID)()}`;
     }
     catch {
         const ts = Date.now().toString(36);

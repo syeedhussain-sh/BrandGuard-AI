@@ -14,8 +14,8 @@ import { checkClaimsRequiringVerification } from './engine/claimsChecker.js';
 import { checkGenericBrandGovernance } from './engine/genericBrandChecker.js';
 import { checkCompanyIdentityMismatch } from './engine/brandMismatchChecker.js';
 import { produceCorrectedContent } from './engine/contentCorrector.js';
-import { deduplicateIssues, generateIssueId } from './engine/utils.js';
-import { randomUUID } from 'crypto';
+import { deduplicateIssues } from './engine/utils.js';
+import { randomUUID } from 'node:crypto';
 
 /**
  * Helper to generate a contract-compliant analysisId (e.g. anlz_9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d).
