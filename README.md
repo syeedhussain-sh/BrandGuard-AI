@@ -8,7 +8,7 @@
 [![Tests](https://img.shields.io/badge/Tests-97%20Passed-success?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
 [![License](https://img.shields.io/badge/License-ISC-blue.svg?style=for-the-badge)](LICENSE)
 
-> 🌐 **Public Website URL:** `[Deployment Pending — Awaiting Permanent Cloud Deployment on Render.com / Vercel]`  
+> 🌐 **Public Website URL:** [Deployment  — Awaiting Permanent Cloud Deployment on Render.com - https://brandguard-ai-w20n.onrender.com/ ]`  
 > *(The application can be run locally or launched with a live public tunnel via `RUN_PRODUCTION.bat`)*
 
 ---
@@ -398,5 +398,8 @@ The repository includes native cloud deployment blueprints:
 ## 12. Author & Acknowledgements
 
 - **Developer:** Syeed Hussain ([@syeedhussain-sh](https://github.com/syeedhussain-sh))
-- **Project:** BrandGuard AI — Intelligent Brand Governance Platform
-- **License:** ISC
+                 Shyam G R - Frontend Development
+                 Sandeep — Analysis Engine Development
+                 U Tamilarasu — Analysis Engine Testing and Validation  
+- **Project:**   BrandGuard AI — Intelligent Brand Governance Platform
+- **License:**   ISC
