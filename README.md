@@ -398,7 +398,7 @@ The repository includes native cloud deployment blueprints:
 ## 12. Author & Acknowledgements
 
 - **Developer:** Syeed Hussain ([@syeedhussain-sh](https://github.com/syeedhussain-sh))
-                 Shyam G R - Frontend Development
+-                 Shyam G R - Frontend Development
                  Sandeep — Analysis Engine Development
                  U Tamilarasu — Analysis Engine Testing and Validation  
 - **Project:**   BrandGuard AI — Intelligent Brand Governance Platform
