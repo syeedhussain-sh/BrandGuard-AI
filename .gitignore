@@ -26,3 +26,8 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Local Backups & Scratch
+*_backup/
+*/*_backup/
+*.backup
