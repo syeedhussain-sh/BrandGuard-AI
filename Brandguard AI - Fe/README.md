@@ -2,13 +2,16 @@
 
 **BrandGuard AI** is an Intelligent Brand Governance Platform built for enterprise brand compliance, marketing copy auditing, forbidden terminology detection, tone consistency verification, and instant corrective copy synthesis.
 
-Developed by **Member 1 (Frontend Lead)** for the national-level hackathon.
+> 🏆 **Hackathon:** TechCircuit Hackathon | **Problem Statement Provider:** Inkloom AI  
+> 👥 **Team:** ChipSmiths (Syeed Hussain S H, U Tamilarasu, Shyam G R, Sandep S)  
+> 🎨 **Frontend Lead:** U Tamilarasu
 
 ---
 
 ## 🌟 Key Features & Pages
 
 ### 1. Executive Governance Dashboard
+
 - **BrandGuard AI Brand Header & Navigation**: Instant access to all governance sub-modules.
 - **Real-time Overview Cards**:
   - **Total Analyses**: Count of evaluated documents.
@@ -19,6 +22,7 @@ Developed by **Member 1 (Frontend Lead)** for the national-level hackathon.
 - **Active Brand Policy Snapshot**: Live overview of NovaTech guidelines and quick-start links.
 
 ### 2. Brand Guidelines
+
 - **Demo Brand (NovaTech)**: Out-of-the-box support for *NovaTech Dynamics Corp.*
 - **Comprehensive Policy Controls**:
   - Official Brand Name & Mission Statement.
@@ -31,6 +35,7 @@ Developed by **Member 1 (Frontend Lead)** for the national-level hackathon.
 - **Reset Demo**: One-click restore to official baseline settings.
 
 ### 3. Content Checker
+
 - **Brand Selector**: Dropdown to select brand profile (loads dynamically from `GET /api/brands`).
 - **Marketing Copy Input**: Multi-line copy input with real-time character and word count tracking.
 - **1-Click Demo Presets**:
@@ -41,6 +46,7 @@ Developed by **Member 1 (Frontend Lead)** for the national-level hackathon.
 - **Submit Action**: Calls `POST /api/analyze` with animated processing state and seamless transition to results.
 
 ### 4. Analysis Results & Diagnostics
+
 - **Severity Breakdown**: Color-coded badges and KPI counters for Total, High, Medium, and Low severity issues.
 - **Detailed Diagnostics**:
   - Category classification tag.
@@ -57,6 +63,7 @@ Developed by **Member 1 (Frontend Lead)** for the national-level hackathon.
 ---
 
 ## 🛠️ Technology Stack
+
 - **Framework**: React 19 + TypeScript
 - **Build Tool**: Vite
 - **Styling**: Vanilla CSS with custom Enterprise Dark Slate design system (no Tailwind dependency)
@@ -70,14 +77,15 @@ Developed by **Member 1 (Frontend Lead)** for the national-level hackathon.
 The frontend connects to the shared backend at `http://localhost:5000` (or configured via `VITE_API_BASE_URL`):
 
 | Endpoint | Method | Description |
-|---|---|---|
+| :--- | :--- | :--- |
 | `/api/health` | `GET` | Backend health and ping verification |
 | `/api/brands` | `GET` | List all brand summaries |
 | `/api/brands/:brandId` | `GET` | Fetch detailed guidelines for a brand |
 | `/api/brands/:brandId` | `PUT` | Save updated brand guidelines |
 | `/api/analyze` | `POST` | Audit marketing content against brand policies |
 
-### Analyze Content Request Format:
+### Analyze Content Request Format
+
 ```json
 {
   "brandId": "demo-brand",
@@ -85,7 +93,8 @@ The frontend connects to the shared backend at `http://localhost:5000` (or confi
 }
 ```
 
-### Analyze Content Expected Response Format:
+### Analyze Content Expected Response Format
+
 ```json
 {
   "success": true,
@@ -116,6 +125,7 @@ The frontend connects to the shared backend at `http://localhost:5000` (or confi
 ## 🧪 Isolated Development Mock Adapter (Offline UI Testing)
 
 To allow judges, teammates, and evaluators to test all UI workflows when the separate backend is not running:
+
 - The frontend features an **isolated, explicitly labeled Development Mock Adapter** (`frontend/src/services/mockAdapter.ts`).
 - Toggle between **Live Backend** and **Dev Mock Mode** using the switch located at the bottom of the sidebar.
 - When backend is offline, an informative banner appears explaining that the backend at `http://localhost:5000` is unreachable, with an option to activate Dev Mock Mode or retry the ping.
@@ -126,32 +136,41 @@ To allow judges, teammates, and evaluators to test all UI workflows when the sep
 ## 🚀 Setup & Running Instructions
 
 ### Prerequisites
+
 - Node.js (v18+ or v20+ recommended)
 - npm
 
 ### 1. Install Dependencies
+
 ```bash
 cd frontend
 npm install
 ```
 
 ### 2. Configure Environment (Optional)
+
 The application defaults to `http://localhost:5000`. You can configure a different backend URL in `frontend/.env`:
+
 ```env
 VITE_API_BASE_URL=http://localhost:5000
 ```
 
 ### 3. Run Development Server
+
 From the `frontend` folder:
+
 ```bash
 npm run dev
 ```
+
 Or from the workspace root:
+
 ```bash
 npm run dev
 ```
 
 ### 4. Build for Production
+
 ```bash
 cd frontend
 npm run build
@@ -162,7 +181,8 @@ The production bundle will be generated in `frontend/dist/`.
 ---
 
 ## 📁 Project Architecture & File Organization
-```
+
+```text
 Brandguard AI - Fe/
 ├── package.json               # Root convenience runner
 ├── README.md                  # Master documentation

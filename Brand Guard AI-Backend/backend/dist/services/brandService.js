@@ -74,6 +74,11 @@ const DEFAULT_DEMO_BRAND = {
             }
         ]
     },
+    approvedFacts: [
+        'NovaTech provides 99.99% availability under our Enterprise SLA.',
+        'NovaTech Cloud Platform is ISO/IEC 27001 certified for cloud security.',
+        'NovaTech was ranked #1 in customer satisfaction by TechReview 2024'
+    ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
 };
@@ -91,6 +96,9 @@ async function getAllBrands() {
     await ensureDataFile();
     try {
         const rawData = await promises_1.default.readFile(DATA_FILE_PATH, 'utf-8');
+        if (!rawData || !rawData.trim()) {
+            return [DEFAULT_DEMO_BRAND];
+        }
         const brands = JSON.parse(rawData);
         return brands;
     }

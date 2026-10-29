@@ -10,6 +10,7 @@ const toneChecker_js_1 = require("./engine/toneChecker.js");
 const claimsChecker_js_1 = require("./engine/claimsChecker.js");
 const genericBrandChecker_js_1 = require("./engine/genericBrandChecker.js");
 const brandMismatchChecker_js_1 = require("./engine/brandMismatchChecker.js");
+const contextualMismatchChecker_js_1 = require("./engine/contextualMismatchChecker.js");
 const contentCorrector_js_1 = require("./engine/contentCorrector.js");
 const utils_js_1 = require("./engine/utils.js");
 const node_crypto_1 = require("node:crypto");
@@ -167,6 +168,7 @@ function analyzeBrandCompliance(input, profile, options) {
                 },
                 issues: [],
                 correctedContent: '',
+                originalContent: content || '',
                 analysisMode,
                 companyName: companyName || undefined,
                 brandName: companyName || undefined,
@@ -178,10 +180,13 @@ function analyzeBrandCompliance(input, profile, options) {
             };
         }
         const rawIssues = [];
+        const supportedClaims = [];
         // 0. Detect cross-company brand identity mismatches (applicable to both Mode A and Mode B)
         if (companyName) {
             rawIssues.push(...(0, brandMismatchChecker_js_1.checkCompanyIdentityMismatch)(content, companyName, industry));
         }
+        // 0b. Detect contextual product and industry mismatches (e.g. food brand offering vehicles vs legitimate delivery)
+        rawIssues.push(...(0, contextualMismatchChecker_js_1.checkContextualIndustryMismatch)(content, companyName, industry));
         if (isConfigured) {
             // =========================================================================
             // Mode A: Configured Brand Analysis
@@ -209,8 +214,10 @@ function analyzeBrandCompliance(input, profile, options) {
                 (activeProfile?.guidelines?.toneRules && activeProfile.guidelines.toneRules.length > 0)) {
                 rawIssues.push(...(0, toneChecker_js_1.checkToneGuidelines)(content, activeProfile));
             }
-            // 5. Flag claims requiring verification defined by brand profile
-            rawIssues.push(...(0, claimsChecker_js_1.checkClaimsRequiringVerification)(content, activeProfile));
+            // 5. Flag claims requiring verification and substantiate approved brand facts
+            const claimResult = (0, claimsChecker_js_1.verifyContentClaims)(content, activeProfile);
+            rawIssues.push(...claimResult.issues);
+            supportedClaims.push(...claimResult.supportedClaims);
         }
         else {
             // =========================================================================
@@ -219,6 +226,32 @@ function analyzeBrandCompliance(input, profile, options) {
             // or inventing unconfigured company rules.
             // =========================================================================
             rawIssues.push(...(0, genericBrandChecker_js_1.checkGenericBrandGovernance)(content, companyName, industry));
+            // If approvedFacts are provided even in generic mode, verify them against content
+            if (activeProfile?.approvedFacts && activeProfile.approvedFacts.length > 0) {
+                const claimResult = (0, claimsChecker_js_1.verifyContentClaims)(content, activeProfile);
+                supportedClaims.push(...claimResult.supportedClaims);
+            }
+            // Requirement 6: If available information is insufficient to determine whether content
+            // matches a brand, return an appropriate uncertain / needs-review result instead of inventing information.
+            if (companyName &&
+                !industry &&
+                companyName.toLowerCase() !== 'novatech' &&
+                companyName.toLowerCase() !== 'demo-brand' &&
+                content.trim().length > 25) {
+                const escaped = companyName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const mentionsBrand = new RegExp(`\\b${escaped}\\b`, 'i').test(content);
+                const hasBrandMismatch = rawIssues.some((i) => i.id.includes('brand_identity'));
+                if (!mentionsBrand && !hasBrandMismatch) {
+                    rawIssues.push({
+                        id: (0, utils_js_1.generateIssueId)('brand_context'),
+                        category: 'terminology',
+                        severity: 'low',
+                        matchedText: companyName,
+                        explanation: `Brand alignment cannot be conclusively determined for "${companyName}" due to limited brand and industry context. Verify that this content is intended for "${companyName}" and configure industry guidelines for more precise analysis.`,
+                        suggestion: `Verify content alignment with "${companyName}", or specify the relevant industry and configure official brand guidelines.`,
+                    });
+                }
+            }
         }
         // Deduplicate issues to prevent repeated/overlapping warnings on the same text
         const deduplicated = (0, utils_js_1.deduplicateIssues)(rawIssues);
@@ -232,6 +265,10 @@ function analyzeBrandCompliance(input, profile, options) {
             suggestion: issue.suggestion,
             ...(issue.startIndex !== undefined ? { startIndex: issue.startIndex } : {}),
             ...(issue.endIndex !== undefined ? { endIndex: issue.endIndex } : {}),
+            ...(issue.requiresHumanReview ? { requiresHumanReview: true } : {}),
+            ...(issue.verificationStatus ? { verificationStatus: issue.verificationStatus } : {}),
+            ...(issue.supportingFact ? { supportingFact: issue.supportingFact } : {}),
+            ...(issue.evidenceCitation ? { evidenceCitation: issue.evidenceCitation } : {}),
         }));
         // Produce corrected content preserving original meaning as much as possible
         const correctedContent = (0, contentCorrector_js_1.produceCorrectedContent)(content, finalIssues, isConfigured ? activeProfile : { name: companyName });
@@ -242,12 +279,29 @@ function analyzeBrandCompliance(input, profile, options) {
             medium: finalIssues.filter((i) => i.severity === 'medium').length,
             low: finalIssues.filter((i) => i.severity === 'low').length,
         };
+        const hasHumanReview = finalIssues.some((i) => i.requiresHumanReview);
+        // Compute claim verification summary
+        const claimIssues = finalIssues.filter((i) => i.category === 'claim_verification' || i.verificationStatus);
+        const supportedClaimsCount = supportedClaims.length;
+        const unsupportedClaimsCount = claimIssues.filter((i) => i.verificationStatus === 'unsupported').length;
+        const requiresReviewCount = claimIssues.filter((i) => i.verificationStatus === 'requires_review' || (i.requiresHumanReview && i.category === 'claim_verification')).length;
+        const totalClaimsChecked = supportedClaimsCount + unsupportedClaimsCount + requiresReviewCount;
+        const claimVerificationSummary = totalClaimsChecked > 0
+            ? {
+                totalClaimsChecked,
+                supportedClaimsCount,
+                unsupportedClaimsCount,
+                requiresReviewCount,
+            }
+            : undefined;
         return {
             success: true,
             analysisId,
             summary,
             issues: finalIssues,
             correctedContent,
+            originalContent: content,
+            requiresHumanReview: hasHumanReview ? true : undefined,
             analysisMode,
             companyName: companyName || undefined,
             brandName: companyName || undefined,
@@ -256,6 +310,8 @@ function analyzeBrandCompliance(input, profile, options) {
             modeLabel,
             officialGuidelinesConfigured,
             disclaimer,
+            supportedClaims: supportedClaims.length > 0 ? supportedClaims : undefined,
+            claimVerificationSummary,
         };
     }
     catch (error) {
@@ -270,6 +326,7 @@ function analyzeBrandCompliance(input, profile, options) {
             },
             issues: [],
             correctedContent: typeof input === 'string' ? input : input?.content || '',
+            originalContent: typeof input === 'string' ? input : input?.content || '',
             analysisMode: 'rules',
             error: error instanceof Error ? error.message : 'Unknown analysis error',
         };

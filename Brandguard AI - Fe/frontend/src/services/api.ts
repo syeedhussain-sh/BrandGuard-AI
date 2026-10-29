@@ -1,5 +1,11 @@
 import type { BrandProfile, BrandSummary, UpdateBrandRequest } from '../types/brand';
-import type { AnalyzeRequest, AnalysisResponse } from '../types/analysis';
+import type {
+  AnalyzeRequest,
+  AnalysisResponse,
+  CreateReviewRequest,
+  ReviewDecision,
+  ReviewMetrics,
+} from '../types/analysis';
 import type { HealthStatus, ApiSuccessResponse } from '../types/api';
 
 /**
@@ -148,12 +154,13 @@ class ApiClient {
     brandId: string,
     payload: UpdateBrandRequest | BrandProfile
   ): Promise<BrandProfile> {
-    // Structure payload according to PUT contract: { name, description, tone, guidelines }
+    // Structure payload according to PUT contract: { name, description, tone, guidelines, approvedFacts }
     const body: UpdateBrandRequest = {
       name: payload.name,
       description: payload.description,
       tone: payload.tone,
       guidelines: payload.guidelines,
+      approvedFacts: payload.approvedFacts,
     };
 
     const res = await this.request<ApiSuccessResponse<{ id: string; name: string; updatedAt: string }> | BrandProfile>(
@@ -173,6 +180,7 @@ class ApiClient {
         description: payload.description,
         tone: payload.tone,
         guidelines: payload.guidelines,
+        approvedFacts: payload.approvedFacts,
         updatedAt: receipt.updatedAt || new Date().toISOString(),
       };
     }
@@ -191,6 +199,50 @@ class ApiClient {
       body: JSON.stringify(request),
     });
   }
+
+  /**
+   * Submit or update a human review decision: POST /api/reviews
+   */
+  async submitReview(data: CreateReviewRequest): Promise<ApiSuccessResponse<ReviewDecision>> {
+    return this.request<ApiSuccessResponse<ReviewDecision>>('/api/reviews', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
+   * Retrieve saved review record for an analysisId: GET /api/reviews/analysis/:analysisId
+   */
+  async getReviewByAnalysisId(analysisId: string): Promise<ApiSuccessResponse<ReviewDecision>> {
+    return this.request<ApiSuccessResponse<ReviewDecision>>(
+      `/api/reviews/analysis/${encodeURIComponent(analysisId)}`
+    );
+  }
+
+  /**
+   * Retrieve dashboard review metrics: GET /api/reviews/metrics
+   */
+  async getReviewMetrics(brandId?: string): Promise<ApiSuccessResponse<ReviewMetrics>> {
+    const query = brandId ? `?brandId=${encodeURIComponent(brandId)}` : '';
+    return this.request<ApiSuccessResponse<ReviewMetrics>>(`/api/reviews/metrics${query}`);
+  }
+
+  /**
+   * Retrieve list of reviews: GET /api/reviews
+   */
+  async getReviews(filter?: {
+    brandId?: string;
+    companyName?: string;
+    status?: string;
+  }): Promise<ApiSuccessResponse<ReviewDecision[]>> {
+    const params = new URLSearchParams();
+    if (filter?.brandId) params.append('brandId', filter.brandId);
+    if (filter?.companyName) params.append('companyName', filter.companyName);
+    if (filter?.status) params.append('status', filter.status);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return this.request<ApiSuccessResponse<ReviewDecision[]>>(`/api/reviews${qs}`);
+  }
 }
 
 export const apiService = new ApiClient(resolveBaseUrl());
+

@@ -12,6 +12,7 @@ import type {
 import { INITIAL_NOVATECH_PROFILE } from '../services/mockAdapter';
 import {
   ShieldCheck,
+  CheckCircle2,
   Plus,
   Trash2,
   Save,
@@ -354,6 +355,8 @@ export const BrandGuidelinesPage: React.FC = () => {
     explanation: ''
   });
 
+  const [newFactText, setNewFactText] = useState<string>('');
+
   // Load selected brand
   useEffect(() => {
     let isMounted = true;
@@ -652,6 +655,27 @@ export const BrandGuidelinesPage: React.FC = () => {
         ...prev.guidelines,
         toneRules: (prev.guidelines.toneRules || []).filter((_, i) => i !== index)
       }
+    }));
+  };
+
+  // Approved Brand Facts & Evidence
+  const addApprovedFact = () => {
+    if (!newFactText.trim()) {
+      showToast('Approved fact cannot be empty.', 'error');
+      return;
+    }
+    setProfile((prev) => ({
+      ...prev,
+      approvedFacts: [...(prev.approvedFacts || []), newFactText.trim()]
+    }));
+    setNewFactText('');
+    showToast('Approved fact added. Click "Save Brand Guidelines" below to persist changes.', 'info');
+  };
+
+  const removeApprovedFact = (index: number) => {
+    setProfile((prev) => ({
+      ...prev,
+      approvedFacts: (prev.approvedFacts || []).filter((_, i) => i !== index)
     }));
   };
 
@@ -1304,14 +1328,82 @@ export const BrandGuidelinesPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Section 5: Tone Rules */}
+          {/* Section 6: Approved Brand Facts & Evidence */}
+          <div className="glass-card mb-6">
+            <div className="card-header-styled">
+              <div className="header-icon-pill icon-success">
+                <CheckCircle2 size={18} />
+              </div>
+              <div>
+                <h3 className="card-heading">6. Approved Brand Facts & Evidence</h3>
+                <p className="card-subheading">
+                  Verified claims, SLA guarantees, and empirical benchmarks used by the analysis engine to substantiate content claims
+                </p>
+              </div>
+            </div>
+
+            <div className="approved-facts-stack mb-4">
+              {(profile.approvedFacts || []).map((fact, idx) => (
+                <div key={idx} className="rule-card-mini flex-between p-3 rounded-lg bg-black/30 border border-white/10 mb-2">
+                  <div className="flex items-start gap-2">
+                    <span className="text-emerald-400 font-bold text-sm shrink-0 mt-0.5">&#10003;</span>
+                    <span className="text-sm text-white font-medium">{fact}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-icon-danger ml-3 shrink-0"
+                    onClick={() => removeApprovedFact(idx)}
+                    title="Remove approved fact"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+              {(!profile.approvedFacts || profile.approvedFacts.length === 0) && (
+                <div className="text-center text-muted py-4 text-sm">
+                  No approved brand facts configured. Add certified brand facts below to automatically substantiate quantitative claims and SLA guarantees.
+                </div>
+              )}
+            </div>
+
+            <div className="add-term-box">
+              <h4 className="add-heading">Add Approved Brand Fact</h4>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  className="form-input flex-1"
+                  placeholder='e.g., NovaTech provides 99.99% availability under our Enterprise SLA.'
+                  value={newFactText}
+                  onChange={(e) => setNewFactText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addApprovedFact();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={addApprovedFact}
+                >
+                  <Plus size={14} /> Add Fact
+                </button>
+              </div>
+              <p className="text-xs text-muted mb-0">
+                Facts added here are verified against marketing content by the analysis engine and will automatically cite this evidence in audit reports.
+              </p>
+            </div>
+          </div>
+
+          {/* Section 7: Tone Rules */}
           <div className="glass-card mb-6">
             <div className="card-header-styled">
               <div className="header-icon-pill icon-warning">
                 <Volume2 size={18} />
               </div>
               <div>
-                <h3 className="card-heading">6. Tone & Voice Violations</h3>
+                <h3 className="card-heading">7. Tone & Voice Violations</h3>
                 <p className="card-subheading">
                   Off-brand expressions (condescending words, hype, slang, or colloquialisms)
                 </p>

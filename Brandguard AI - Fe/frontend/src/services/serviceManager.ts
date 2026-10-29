@@ -1,7 +1,13 @@
 import { apiService } from './api';
 import { devMockAdapter, INITIAL_NOVATECH_PROFILE } from './mockAdapter';
 import type { BrandProfile, BrandSummary, UpdateBrandRequest } from '../types/brand';
-import type { AnalyzeRequest, AnalysisResponse } from '../types/analysis';
+import type {
+  AnalyzeRequest,
+  AnalysisResponse,
+  CreateReviewRequest,
+  ReviewDecision,
+  ReviewMetrics,
+} from '../types/analysis';
 
 export interface ServiceStatus {
   isBackendConnected: boolean;
@@ -167,8 +173,61 @@ class ServiceManager {
       throw err;
     }
   }
+
+  /**
+   * Submit human review decision (POST /api/reviews)
+   */
+  public async submitReview(data: CreateReviewRequest): Promise<ReviewDecision> {
+    if (this.useMock) {
+      return devMockAdapter.submitReview(data);
+    }
+    const res = await apiService.submitReview(data);
+    return res.data;
+  }
+
+  /**
+   * Retrieve review decision for an analysisId (GET /api/reviews/analysis/:analysisId)
+   */
+  public async getReviewByAnalysisId(analysisId: string): Promise<ReviewDecision | null> {
+    if (this.useMock) {
+      return devMockAdapter.getReviewByAnalysisId(analysisId);
+    }
+    try {
+      const res = await apiService.getReviewByAnalysisId(analysisId);
+      return res.data;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Retrieve dashboard review metrics (GET /api/reviews/metrics)
+   */
+  public async getReviewMetrics(brandId?: string): Promise<ReviewMetrics> {
+    if (this.useMock) {
+      return devMockAdapter.getReviewMetrics(brandId);
+    }
+    const res = await apiService.getReviewMetrics(brandId);
+    return res.data;
+  }
+
+  /**
+   * Retrieve all recent review decisions (GET /api/reviews)
+   */
+  public async getReviews(filter?: {
+    brandId?: string;
+    companyName?: string;
+    status?: string;
+  }): Promise<ReviewDecision[]> {
+    if (this.useMock) {
+      return devMockAdapter.getReviews();
+    }
+    const res = await apiService.getReviews(filter);
+    return res.data;
+  }
 }
 
 export const serviceManager = new ServiceManager();
 export const INITIAL_NOVATECH_GUIDELINES = INITIAL_NOVATECH_PROFILE;
 export { INITIAL_NOVATECH_PROFILE };
+

@@ -7,7 +7,24 @@ export type IssueSeverity = 'high' | 'medium' | 'low';
  * Categories of brand compliance issues.
  * Contract: 'terminology' | 'restricted_phrase' | 'missing_term' | 'tone' | 'claim_verification'
  */
-export type IssueCategory = 'terminology' | 'restricted_phrase' | 'missing_term' | 'tone' | 'claim_verification';
+export type IssueCategory = 'brand_identity' | 'competitor_brand' | 'terminology' | 'restricted_phrase' | 'missing_term' | 'tone' | 'claim_verification';
+export type ClaimVerificationStatus = 'supported' | 'unsupported' | 'requires_review';
+export interface SupportedClaim {
+    claimText: string;
+    matchedText: string;
+    status: 'supported';
+    supportingFact: string;
+    evidenceCitation?: string;
+    explanation: string;
+    startIndex?: number;
+    endIndex?: number;
+}
+export interface ClaimVerificationSummary {
+    totalClaimsChecked: number;
+    supportedClaimsCount: number;
+    unsupportedClaimsCount: number;
+    requiresReviewCount: number;
+}
 /**
  * Structure of an individual detected compliance issue (Contract Section 5).
  */
@@ -20,6 +37,10 @@ export interface IssueItem {
     suggestion: string;
     startIndex?: number;
     endIndex?: number;
+    requiresHumanReview?: boolean;
+    verificationStatus?: ClaimVerificationStatus;
+    supportingFact?: string;
+    evidenceCitation?: string;
 }
 /**
  * Backwards compatibility alias for IssueItem.
@@ -43,6 +64,8 @@ export interface AnalysisResponse {
     summary: AnalysisSummary;
     issues: IssueItem[];
     correctedContent: string;
+    originalContent?: string;
+    requiresHumanReview?: boolean;
     analysisMode: 'rules' | 'ai' | 'hybrid' | 'configured' | 'generic' | string;
     companyName?: string;
     brandName?: string;
@@ -52,6 +75,8 @@ export interface AnalysisResponse {
     officialGuidelinesConfigured?: boolean;
     disclaimer?: string;
     error?: string;
+    supportedClaims?: SupportedClaim[];
+    claimVerificationSummary?: ClaimVerificationSummary;
 }
 /**
  * Backwards compatibility alias for AnalysisResponse.

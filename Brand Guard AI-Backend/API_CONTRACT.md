@@ -27,6 +27,10 @@ Base URL (Local Development): `http://localhost:5000/api`
 | `GET` | `/api/brands/:brandId` | Retrieve detailed brand guidelines and rules for a given `brandId`. |
 | `PUT` | `/api/brands/:brandId` | Update brand guidelines and rules for a given `brandId`. |
 | `POST` | `/api/analyze` | Run brand compliance analysis on submitted content. |
+| `POST` | `/api/reviews` | Create or update human review approval/rejection decision. |
+| `GET` | `/api/reviews` | List all review decisions with optional brandId/company/status filter. |
+| `GET` | `/api/reviews/metrics` | Retrieve aggregated dashboard review governance metrics. |
+| `GET` | `/api/reviews/analysis/:analysisId` | Fetch existing review decision and audit trail for an analysis. |
 
 ---
 
@@ -236,6 +240,7 @@ Analyzes candidate text against the specified brand's rules and returns structur
 Supports both Mode A (Configured Brand ID) and Mode B (Universal Company & Industry Input):
 
 ##### Mode A: Configured Brand Request
+
 ```json
 {
   "brandId": "demo-brand",
@@ -244,6 +249,7 @@ Supports both Mode A (Configured Brand ID) and Mode B (Universal Company & Indus
 ```
 
 ##### Mode B: Universal Multi-Industry Request (Any Company & Industry)
+
 ```json
 {
   "companyName": "Tata Motors",
@@ -311,6 +317,103 @@ Supports both Mode A (Configured Brand ID) and Mode B (Universal Company & Indus
   "analysisMode": "rules"
 }
 ```
+
+---
+
+### 3.6. Review & Approval Workflow Endpoints
+
+#### 3.6.1 POST /api/reviews
+
+Create or update a human review decision (Approve / Reject) for an analysis result.
+
+**Request Body:**
+
+```json
+{
+  "analysisId": "anlz_f9d50e1e-cc2d-4ad9-80ef-4c44cae84f90",
+  "brandId": "demo-brand",
+  "brandName": "NovaTech",
+  "companyName": "NovaTech",
+  "industry": "Technology and software",
+  "contentSnippet": "Our NovaTech Cloud Platform provides 99.99% availability...",
+  "status": "approved",
+  "reviewerName": "Brand Compliance Officer",
+  "reviewerRole": "Marketing Review Lead",
+  "reviewerEmail": "compliance@novatech.io",
+  "notes": "Reviewed and verified against Q4 marketing guidelines.",
+  "rejectionReason": "",
+  "allowUpdate": true
+}
+```
+
+**Validation Rules:**
+
+- `analysisId` (string, required): Associated analysis identifier.
+- `status` (string, required): One of `'pending'`, `'approved'`, `'rejected'`.
+- `reviewerName` (string, required for `'approved'` or `'rejected'`): Identifying name of the reviewer.
+- `rejectionReason` (string, mandatory if status is `'rejected'`): Explicit justification required for rejecting content.
+- `allowUpdate` (boolean, optional): Set to `true` to revise a previously finalized review decision.
+
+**Response (201 Created / 200 OK):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "rev_837f2623-afca-461c-86dc-c4738c2c4c3c",
+    "analysisId": "anlz_f9d50e1e-cc2d-4ad9-80ef-4c44cae84f90",
+    "brandId": "demo-brand",
+    "brandName": "NovaTech",
+    "companyName": "NovaTech",
+    "industry": "Technology and software",
+    "contentSnippet": "Our NovaTech Cloud Platform provides 99.99% availability...",
+    "status": "approved",
+    "reviewerName": "Brand Compliance Officer",
+    "reviewerRole": "Marketing Review Lead",
+    "notes": "Reviewed and verified against Q4 marketing guidelines.",
+    "createdAt": "2026-10-28T12:07:36.330Z",
+    "updatedAt": "2026-10-28T12:07:43.678Z",
+    "auditTrail": [
+      {
+        "status": "pending",
+        "timestamp": "2026-10-28T12:07:36.330Z"
+      },
+      {
+        "status": "approved",
+        "reviewerName": "Brand Compliance Officer",
+        "timestamp": "2026-10-28T12:07:43.678Z"
+      }
+    ]
+  },
+  "message": "Review decision recorded successfully."
+}
+```
+
+#### 3.6.2 GET /api/reviews
+
+Retrieve historical review decisions. Supports optional query filters: `brandId`, `companyName`, and `status`.
+
+#### 3.6.3 GET /api/reviews/metrics
+
+Retrieve aggregated governance metrics for the Executive Dashboard:
+
+```json
+{
+  "success": true,
+  "data": {
+    "totalReviews": 12,
+    "approvedCount": 8,
+    "rejectedCount": 2,
+    "pendingCount": 2,
+    "approvalRate": 80,
+    "recentDecisions": [...]
+  }
+}
+```
+
+#### 3.6.4 GET /api/reviews/analysis/:analysisId
+
+Retrieve the stored review decision and audit trail for a specific `analysisId`.
 
 ---
 
@@ -434,12 +537,56 @@ export interface BrandProfile {
   isGeneric?: boolean;
 }
 
-export interface AnalyzeRequest {
-  brandId?: string;
-  companyName?: string;
-  brandName?: string;
   industry?: string;
   content: string;
+}
+
+export type ReviewStatus = 'pending' | 'approved' | 'rejected';
+
+export interface AuditTrailEntry {
+  status: ReviewStatus;
+  reviewerName?: string;
+  notes?: string;
+  timestamp: string;
+}
+
+export interface ReviewDecision {
+  id: string;
+  analysisId: string;
+  brandId: string;
+  brandName?: string;
+  companyName?: string;
+  industry?: string;
+  contentSnippet?: string;
+  status: ReviewStatus;
+  reviewerName?: string;
+  reviewerRole?: string;
+  reviewerEmail?: string;
+  notes?: string;
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt: string;
+  auditTrail: AuditTrailEntry[];
+}
+
+export interface ReviewMetrics {
+  totalReviews: number;
+  approvedCount: number;
+  rejectedCount: number;
+  pendingCount: number;
+  approvalRate: number;
+  recentDecisions: ReviewDecision[];
+}
+
+export interface SupportedClaim {
+  claimText: string;
+  matchedText: string;
+  status: 'supported';
+  supportingFact: string;
+  evidenceCitation: string;
+  explanation: string;
+  startIndex?: number;
+  endIndex?: number;
 }
 ```
 

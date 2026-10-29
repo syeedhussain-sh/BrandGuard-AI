@@ -50,6 +50,7 @@ export interface BrandProfile {
   guidelines: BrandGuidelines;
   createdAt?: string;
   updatedAt?: string;
+  approvedFacts?: string[];
 }
 
 export interface BrandSummary {
@@ -68,4 +69,6 @@ export interface UpdateBrandRequest {
   description?: string;
   tone?: string[];
   guidelines: BrandGuidelines;
+  approvedFacts?: string[];
 }
+

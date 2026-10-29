@@ -53,12 +53,36 @@ export const KNOWN_BRAND_REGISTRY: BrandEntity[] = [
     industry: 'Mobile phones and electronics',
     keywords: ['oxygenos', 'warp charge'],
   },
+  {
+    name: 'Sony',
+    aliases: ['Sony PlayStation', 'PlayStation', 'Sony Electronics', 'Sony Xperia', 'Sony'],
+    industry: 'Mobile phones and electronics',
+    keywords: ['playstation', 'bravia', 'xperia'],
+  },
+  {
+    name: 'LG',
+    aliases: ['LG Electronics', 'LG OLED', 'LG'],
+    industry: 'Mobile phones and electronics',
+    keywords: ['oled', 'thinq'],
+  },
   // Automotive
   {
     name: 'Tata Motors',
     aliases: ['Tata Motors Passenger Vehicles', 'Tata Motors EV', 'Tata Motors', 'Tata Safari', 'Tata Nexon', 'Tata Harrier'],
     industry: 'Automotive',
     keywords: ['nexon', 'harrier', 'safari', 'icng', 'tiago', 'altroz', 'suv', 'trucks'],
+  },
+  {
+    name: 'Tesla',
+    aliases: ['Tesla Motors', 'Tesla Model 3', 'Tesla Model Y', 'Tesla Model S', 'Tesla Model X', 'Cybertruck', 'Tesla Autopilot', 'Supercharger', 'Tesla'],
+    industry: 'Automotive',
+    keywords: ['autopilot', 'supercharger', 'electric vehicle', 'ev', 'model 3', 'model y', 'cybertruck'],
+  },
+  {
+    name: 'Rivian',
+    aliases: ['Rivian Automotive', 'Rivian R1T', 'Rivian R1S', 'Rivian'],
+    industry: 'Automotive',
+    keywords: ['r1t', 'r1s', 'electric truck', 'adventure vehicle'],
   },
   {
     name: 'MRF Tyres',
@@ -84,12 +108,90 @@ export const KNOWN_BRAND_REGISTRY: BrandEntity[] = [
     industry: 'Automotive',
     keywords: ['creta', 'venue', 'tucson', 'ioniq'],
   },
+  {
+    name: 'Ford',
+    aliases: ['Ford Motor', 'Ford Mustang', 'Ford F-150', 'Ford'],
+    industry: 'Automotive',
+    keywords: ['mustang', 'f-150', 'mach-e', 'bronco'],
+  },
+  {
+    name: 'Chevrolet',
+    aliases: ['Chevy Silverado', 'Chevrolet Silverado', 'Chevrolet', 'Chevy'],
+    industry: 'Automotive',
+    keywords: ['silverado', 'corvette', 'camaro'],
+  },
+  {
+    name: 'Porsche',
+    aliases: ['Porsche 911', 'Porsche Taycan', 'Porsche'],
+    industry: 'Automotive',
+    keywords: ['taycan', '911', 'carrera'],
+  },
+  {
+    name: 'Audi',
+    aliases: ['Audi Quattro', 'Audi e-tron', 'Audi'],
+    industry: 'Automotive',
+    keywords: ['quattro', 'e-tron'],
+  },
+  {
+    name: 'Mercedes-Benz',
+    aliases: ['Mercedes-Benz', 'Mercedes-AMG', 'Mercedes'],
+    industry: 'Automotive',
+    keywords: ['amg', '4matic'],
+  },
+  {
+    name: 'Volkswagen',
+    aliases: ['Volkswagen', 'VW'],
+    industry: 'Automotive',
+    keywords: ['golf', 'passat', 'id.4'],
+  },
+  {
+    name: 'Honda',
+    aliases: ['Honda Motor', 'Honda Civic', 'Honda'],
+    industry: 'Automotive',
+    keywords: ['civic', 'accord', 'cr-v'],
+  },
   // Food & Beverages
+  {
+    name: 'KFC',
+    aliases: ['Kentucky Fried Chicken', 'KFC'],
+    industry: 'Food and beverages',
+    keywords: ['chicken', 'original recipe', 'fast food', 'bucket', 'crispy chicken'],
+  },
   {
     name: "McDonald's",
     aliases: ["McDonald's", "McDonalds", 'Big Mac', 'McFlurry', 'Golden Arches'],
     industry: 'Food and beverages',
     keywords: ['burger', 'fries', 'big mac', 'happy meal'],
+  },
+  {
+    name: 'Subway',
+    aliases: ['Subway Footlong', 'Subway'],
+    industry: 'Food and beverages',
+    keywords: ['sub', 'sandwich', 'footlong'],
+  },
+  {
+    name: 'Burger King',
+    aliases: ['Burger King', 'Whopper'],
+    industry: 'Food and beverages',
+    keywords: ['burger', 'whopper', 'flame-grilled'],
+  },
+  {
+    name: 'Starbucks',
+    aliases: ['Starbucks Coffee', 'Frappuccino', 'Starbucks'],
+    industry: 'Food and beverages',
+    keywords: ['coffee', 'frappuccino', 'espresso', 'latte'],
+  },
+  {
+    name: "Domino's",
+    aliases: ["Domino's Pizza", 'Dominos Pizza', "Domino's", 'Dominos'],
+    industry: 'Food and beverages',
+    keywords: ['pizza', 'garlic bread'],
+  },
+  {
+    name: 'Pizza Hut',
+    aliases: ['Pizza Hut'],
+    industry: 'Food and beverages',
+    keywords: ['pizza', 'pan pizza'],
   },
   {
     name: 'Coca-Cola',
@@ -123,6 +225,12 @@ export const KNOWN_BRAND_REGISTRY: BrandEntity[] = [
     keywords: ['three stripes', 'ultraboost', 'sneakers'],
   },
   {
+    name: 'Puma',
+    aliases: ['Puma Motorsport', 'Puma'],
+    industry: 'Clothing and fashion',
+    keywords: ['sneakers', 'sportswear'],
+  },
+  {
     name: 'Zara',
     aliases: ['Zara Fashion', 'Zara'],
     industry: 'Clothing and fashion',
@@ -148,6 +256,36 @@ export const KNOWN_BRAND_REGISTRY: BrandEntity[] = [
     keywords: ['gcp', 'gemini', 'workspace', 'search'],
   },
   {
+    name: 'Amazon',
+    aliases: ['Amazon Prime', 'Amazon Web Services', 'Amazon.com', 'Amazon'],
+    industry: 'Retail and e-commerce',
+    keywords: ['ecommerce', 'prime delivery', 'aws'],
+  },
+  {
+    name: 'Oracle',
+    aliases: ['Oracle Cloud', 'Oracle Database', 'Oracle'],
+    industry: 'Technology and software',
+    keywords: ['oracle cloud', 'database', 'erp'],
+  },
+  {
+    name: 'Salesforce',
+    aliases: ['Salesforce CRM', 'Salesforce'],
+    industry: 'Technology and software',
+    keywords: ['salesforce', 'crm'],
+  },
+  {
+    name: 'Intel',
+    aliases: ['Intel Core', 'Intel Xeon', 'Intel'],
+    industry: 'Technology and software',
+    keywords: ['intel core', 'semiconductor', 'processor'],
+  },
+  {
+    name: 'Nvidia',
+    aliases: ['Nvidia GeForce', 'Nvidia RTX', 'Nvidia'],
+    industry: 'Technology and software',
+    keywords: ['geforce', 'rtx', 'cuda', 'gpu'],
+  },
+  {
     name: 'Infosys',
     aliases: ['Infosys BPM', 'Infosys Cobalt', 'Infosys Technologies', 'Infosys'],
     industry: 'Technology and software',
@@ -158,13 +296,6 @@ export const KNOWN_BRAND_REGISTRY: BrandEntity[] = [
     aliases: ['Tata Consultancy Services', 'TCS'],
     industry: 'Technology and software',
     keywords: ['it consulting', 'tcs bancs'],
-  },
-  // Retail & E-commerce
-  {
-    name: 'Amazon',
-    aliases: ['Amazon Prime', 'Amazon Web Services', 'Amazon.com', 'Amazon'],
-    industry: 'Retail and e-commerce',
-    keywords: ['ecommerce', 'prime delivery', 'aws'],
   },
   {
     name: 'Flipkart',
@@ -250,7 +381,268 @@ function isGenuineBrandContext(content: string, matchIndex: number, matchedText:
     }
   }
 
+  // 4. "Ford": avoid river crossings
+  if (lower === 'ford') {
+    const preceding = content.slice(Math.max(0, matchIndex - 15), matchIndex).toLowerCase();
+    if (/\b(?:cross|wade|through)\s+(?:a|the)\s+$/i.test(preceding)) {
+      return false;
+    }
+  }
+
+  // 5. "Puma": avoid generic animal contexts
+  if (lower === 'puma') {
+    const following = content.slice(matchIndex + matchedText.length, matchIndex + matchedText.length + 15).toLowerCase();
+    if (/\b(?:animal|cat|predator|wildlife|species)\b/.test(following)) {
+      return false;
+    }
+  }
+
   return true;
+}
+
+/**
+ * Checks content for references to foreign companies or competitor entities
+ * that differ from the selected active company.
+ *
+ * @param content - The marketing copy submitted by the user.
+ * @param selectedCompany - The active company or brand name selected in the audit context.
+ * @param selectedIndustry - The active industry selected (optional).
+ * @returns Array of AnalysisIssue items flagging detected company identity mismatches.
+ */
+/**
+ * Result of generating a safe, contextual correction for competitor brand references.
+ */
+export interface CompetitorCorrection {
+  canCorrect: boolean;
+  requiresHumanReview: boolean;
+  suggestedText: string;
+  explanation: string;
+}
+
+/**
+ * Extracts enclosing sentence around a text span.
+ */
+export function getEnclosingSentence(
+  content: string,
+  startIndex: number,
+  endIndex: number
+): { sentence: string; start: number; end: number } {
+  let sStart = 0;
+  for (let i = startIndex - 1; i >= 0; i--) {
+    const ch = content[i];
+    if (ch === '.' || ch === '!' || ch === '?' || ch === '\n') {
+      let j = i + 1;
+      while (j < startIndex && /\s/.test(content[j])) {
+        j++;
+      }
+      sStart = j;
+      break;
+    }
+  }
+
+  let sEnd = content.length;
+  for (let i = endIndex; i < content.length; i++) {
+    const ch = content[i];
+    if (ch === '.' || ch === '!' || ch === '?' || ch === '\n') {
+      sEnd = i + 1;
+      break;
+    }
+  }
+
+  const sentence = content.substring(sStart, sEnd).trim();
+  return { sentence, start: sStart, end: sEnd };
+}
+
+/**
+ * Generates a safe, brand-appropriate correction or marks content for human review.
+ */
+export function generateCompetitorBrandCorrection(
+  content: string,
+  startIndex: number,
+  endIndex: number,
+  matchedText: string,
+  competitorEntity: BrandEntity,
+  selectedCompany: string,
+  selectedIndustry?: string
+): CompetitorCorrection {
+  const { sentence } = getEnclosingSentence(content, startIndex, endIndex);
+  const cleanSelected = selectedCompany.trim();
+  const lowerSentence = sentence.toLowerCase();
+  const lowerSelected = cleanSelected.toLowerCase();
+
+  // Check 1: Check if content contains unresolvable competitor proprietary data
+  // (e.g. financial earnings, quarterly reports, revenue numbers, patents, lawsuits, defects/recalls)
+  const hasProprietaryData =
+    /\b(?:earnings|revenue|quarterly|fiscal|balance sheet|profit margin|q[1-4]\b|\$\d+(?:\.\d+)?\s*(?:billion|million|b|m)\b|patent\s*#?\d+|lawsuit|subpoena|confidential|nda|internal memo|recalled|recall\s+notice)\b/i.test(
+      sentence
+    );
+
+  if (hasProprietaryData) {
+    return {
+      canCorrect: false,
+      requiresHumanReview: true,
+      suggestedText: 'Manual human review required: Content references competitor proprietary financial, patent, or legal data that cannot be safely auto-corrected.',
+      explanation: `Content references proprietary or confidential data belonging to competitor "${matchedText}". Manual editorial review is required to avoid fabricating facts or claims.`,
+    };
+  }
+
+  // Check 2: Unrelated cross-industry product identity (e.g. Nova Cloud when brand is KFC or Tata Motors)
+  // Preserves original product identity and flags for review rather than inventing cross-domain products.
+  if (
+    competitorEntity.name === 'NovaTech' ||
+    competitorEntity.aliases.includes('Nova Cloud') ||
+    competitorEntity.aliases.includes('NovaTech Cloud Platform')
+  ) {
+    const isTechBrand =
+      lowerSelected.includes('nova') ||
+      lowerSelected.includes('cloud') ||
+      (selectedIndustry && /cloud|software|tech|it/i.test(selectedIndustry));
+    if (!isTechBrand) {
+      return {
+        canCorrect: false,
+        requiresHumanReview: false,
+        suggestedText: `Verify whether "${matchedText}" was intended or if the wrong brand or industry was selected in settings; preserve product identity.`,
+        explanation: `Content references "${matchedText}" (${competitorEntity.industry || 'Technology'}), which appears to be a different company or product than the selected brand ("${cleanSelected}"). Ensure marketing copy aligns with the intended brand identity.`,
+      };
+    }
+  }
+
+  // Check 3: Domain-specific intelligent replacements that preserve intended marketing purpose
+
+  // 3a. QSR / Food & Dining (e.g. KFC, Subway, Burger King, McDonald's)
+  if (lowerSelected.includes('kfc') || lowerSelected.includes('kentucky fried chicken')) {
+    return {
+      canCorrect: true,
+      requiresHumanReview: false,
+      suggestedText: "Enjoy KFC's signature fried chicken and delicious sides.",
+      explanation: `Content references competitor "${matchedText}" (${competitorEntity.industry || 'Food & Dining'}), which conflicts with selected brand "${cleanSelected}". Ensure marketing copy reinforces the intended brand identity.`,
+    };
+  }
+
+  if (lowerSelected.includes('subway')) {
+    return {
+      canCorrect: true,
+      requiresHumanReview: false,
+      suggestedText: "Enjoy Subway's freshly made subs and delicious sides.",
+      explanation: `Content references competitor "${matchedText}", which conflicts with selected brand "${cleanSelected}".`,
+    };
+  }
+
+  if (lowerSelected.includes('burger king')) {
+    return {
+      canCorrect: true,
+      requiresHumanReview: false,
+      suggestedText: "Enjoy Burger King's flame-grilled burgers and delicious sides.",
+      explanation: `Content references competitor "${matchedText}", which conflicts with selected brand "${cleanSelected}".`,
+    };
+  }
+
+  if (lowerSelected.includes('mcdonald')) {
+    return {
+      canCorrect: true,
+      requiresHumanReview: false,
+      suggestedText: "Enjoy McDonald's classic menu favorites and delicious meals.",
+      explanation: `Content references competitor "${matchedText}", which conflicts with selected brand "${cleanSelected}".`,
+    };
+  }
+
+  // 3b. Automotive & Electric Vehicles (e.g. Tata Motors, Tesla, Rivian, Mahindra, Hyundai, Ford)
+  if (lowerSelected.includes('tata motors') || lowerSelected === 'tata') {
+    if (
+      lowerSentence.includes('autonomous') ||
+      lowerSentence.includes('self-driving') ||
+      lowerSentence.includes('autopilot')
+    ) {
+      return {
+        canCorrect: true,
+        requiresHumanReview: false,
+        suggestedText: 'Tata Motors offers innovative electric vehicles with reliable engineering.',
+        explanation: `Content references competitor "${matchedText}" with autonomous driving claims. Adapted to highlight Tata Motors' innovative EV lineup with reliable engineering.`,
+      };
+    }
+
+    if (
+      lowerSentence.includes('electric vehicle') ||
+      lowerSentence.includes('electric car') ||
+      lowerSentence.includes('ev') ||
+      lowerSentence.includes('vehicle') ||
+      lowerSentence.includes('car') ||
+      lowerSentence.includes('suv')
+    ) {
+      return {
+        canCorrect: true,
+        requiresHumanReview: false,
+        suggestedText: 'Tata Motors delivers innovative electric vehicles and passenger cars.',
+        explanation: `Content references competitor "${matchedText}". Adapted to showcase Tata Motors' electric vehicles and passenger cars.`,
+      };
+    }
+
+    return {
+      canCorrect: true,
+      requiresHumanReview: false,
+      suggestedText: 'Tata Motors delivers innovative vehicles engineered for reliability and performance.',
+      explanation: `Content references competitor "${matchedText}". Adapted to showcase Tata Motors' vehicle engineering.`,
+    };
+  }
+
+  if (lowerSelected.includes('rivian')) {
+    return {
+      canCorrect: true,
+      requiresHumanReview: false,
+      suggestedText: 'Rivian delivers innovative all-electric adventure vehicles engineered for off-road performance.',
+      explanation: `Content references competitor "${matchedText}". Adapted to showcase Rivian's all-electric adventure vehicles.`,
+    };
+  }
+
+  // 3c. Consumer Electronics & Mobile (e.g. Samsung, Apple)
+  if (lowerSelected.includes('samsung')) {
+    return {
+      canCorrect: true,
+      requiresHumanReview: false,
+      suggestedText: 'Samsung Galaxy features innovative display technology and high-performance capabilities.',
+      explanation: `Content references competitor "${matchedText}". Adapted to highlight Samsung Galaxy features.`,
+    };
+  }
+
+  if (lowerSelected.includes('apple')) {
+    return {
+      canCorrect: true,
+      requiresHumanReview: false,
+      suggestedText: 'Apple delivers intuitive devices with powerful performance and elegant design.',
+      explanation: `Content references competitor "${matchedText}". Adapted to highlight Apple devices.`,
+    };
+  }
+
+  // 3d. Sportswear & Footwear (e.g. Nike, Adidas, Puma)
+  if (lowerSelected.includes('nike')) {
+    return {
+      canCorrect: true,
+      requiresHumanReview: false,
+      suggestedText: 'Nike offers high-performance athletic footwear and premium sportswear.',
+      explanation: `Content references competitor "${matchedText}". Adapted to highlight Nike sportswear.`,
+    };
+  }
+
+  if (lowerSelected.includes('puma') || lowerSelected.includes('adidas')) {
+    return {
+      canCorrect: true,
+      requiresHumanReview: false,
+      suggestedText: `${cleanSelected} delivers stylish athletic footwear and performance sportswear.`,
+      explanation: `Content references competitor "${matchedText}". Adapted to highlight ${cleanSelected} sportswear.`,
+    };
+  }
+
+  // 3e. Universal safe replacement fallback for other brands
+  const replacedSentence = sentence.replace(
+    new RegExp(`\\b${escapeRegex(matchedText)}\\b`, 'gi'),
+    cleanSelected
+  );
+  return {
+    canCorrect: true,
+    requiresHumanReview: false,
+    suggestedText: replacedSentence,
+    explanation: `Content references competitor "${matchedText}", which conflicts with selected brand "${cleanSelected}". Ensure marketing copy aligns with the intended brand identity.`,
+  };
 }
 
 /**
@@ -273,6 +665,7 @@ export function checkCompanyIdentityMismatch(
   }
 
   const cleanSelected = selectedCompany.trim();
+  const cleanIndustry = (selectedIndustry || '').trim();
 
   // Evaluate against all known brands in the registry
   for (const entity of KNOWN_BRAND_REGISTRY) {
@@ -310,16 +703,26 @@ export function checkCompanyIdentityMismatch(
         );
 
         if (!alreadyCaught) {
-          const industryHint = entity.industry ? ` (${entity.industry})` : '';
-          issues.push({
-            id: generateIssueId('brand_identity'),
-            category: 'terminology',
-            severity: 'high',
-            matchedText,
-            explanation: `Content references "${matchedText}"${industryHint}, which appears to be a different company than the selected brand ("${cleanSelected}"). Ensure marketing copy aligns with the intended brand identity.`,
-            suggestion: `Replace with "${cleanSelected}" if this material is intended for ${cleanSelected}, or clarify the context.`,
+          const correction = generateCompetitorBrandCorrection(
+            content,
             startIndex,
             endIndex,
+            matchedText,
+            entity,
+            cleanSelected,
+            cleanIndustry
+          );
+
+          issues.push({
+            id: generateIssueId('brand_identity'),
+            category: 'brand_identity',
+            severity: 'high',
+            matchedText,
+            explanation: correction.explanation,
+            suggestion: correction.suggestedText,
+            startIndex,
+            endIndex,
+            requiresHumanReview: correction.requiresHumanReview ? true : undefined,
           });
         }
       }

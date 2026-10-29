@@ -248,7 +248,7 @@ describe('Universal Multi-Industry Backend Integration Tests (Scenarios 1-12)', 
       (i: any) => i.matchedText === 'Nova Cloud' || i.matchedText.includes('Nova')
     );
     expect(mismatchIssue).toBeDefined();
-    expect(mismatchIssue.category).toBe('terminology');
+    expect(mismatchIssue.category).toBe('brand_identity');
     expect(mismatchIssue.severity).toBe('high');
     expect(mismatchIssue.explanation).toContain('Tata Motors');
   });
@@ -269,5 +269,111 @@ describe('Universal Multi-Industry Backend Integration Tests (Scenarios 1-12)', 
       (i: any) => i.explanation.includes('appears to be a different company')
     );
     expect(mismatchIssue).toBeUndefined();
+  });
+
+  // Scenario 15: Newly entered brand with matching content via API
+  it('Scenario 15: Newly entered brand with matching content via API', async () => {
+    const res = await request(app)
+      .post('/api/analyze')
+      .send({
+        companyName: 'Rivian',
+        industry: 'Automotive',
+        content: 'Rivian announces our new all-electric R1T adventure vehicle with robust dual-motor capabilities.'
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.companyName).toBe('Rivian');
+    const mismatch = res.body.issues.find((i: any) => i.id.includes('brand_identity'));
+    expect(mismatch).toBeUndefined();
+  });
+
+  // Scenario 16: Newly entered brand with mismatched content via API
+  it('Scenario 16: Newly entered brand with mismatched content via API', async () => {
+    const res = await request(app)
+      .post('/api/analyze')
+      .send({
+        companyName: 'Rivian',
+        industry: 'Automotive',
+        content: 'Tesla Model Y features industry-leading autopilot and supercharging access across North America.'
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    const mismatch = res.body.issues.find((i: any) => i.id.includes('brand_identity'));
+    expect(mismatch).toBeDefined();
+    expect(mismatch.explanation).toContain('Rivian');
+  });
+
+  // Scenario 17: Newly entered brand with limited context via API
+  it('Scenario 17: Newly entered brand with limited context returns needs-review item via API', async () => {
+    const res = await request(app)
+      .post('/api/analyze')
+      .send({
+        companyName: 'ApexFlow',
+        // No industry provided
+        content: 'Our core infrastructure accelerates data ingestion and business processing performance.'
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    const contextIssue = res.body.issues.find((i: any) => i.id.includes('brand_context'));
+    expect(contextIssue).toBeDefined();
+    expect(contextIssue.severity).toBe('low');
+  });
+
+  // Scenario 18: KFC with McDonald's competitor content via API
+  it('Scenario 18: KFC with McDonald\'s competitor content classifies as brand_identity and corrects content', async () => {
+    const res = await request(app)
+      .post('/api/analyze')
+      .send({
+        companyName: 'KFC',
+        industry: 'FOOD AND RESTAURANT',
+        content: "McDonald's offers burgers and milkshakes."
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.originalContent).toBe("McDonald's offers burgers and milkshakes.");
+    const mismatch = res.body.issues.find((i: any) => i.matchedText.includes("McDonald's"));
+    expect(mismatch).toBeDefined();
+    expect(mismatch.category).toBe('brand_identity');
+    expect(mismatch.severity).toBe('high');
+    expect(res.body.correctedContent).toBe("Enjoy KFC's signature fried chicken and delicious sides.");
+  });
+
+  // Scenario 19: Tata Motors with Tesla competitor content via API
+  it('Scenario 19: Tata Motors with Tesla competitor content classifies as brand_identity and preserves marketing intent', async () => {
+    const res = await request(app)
+      .post('/api/analyze')
+      .send({
+        companyName: 'Tata Motors',
+        industry: 'Automotive',
+        content: 'Tesla offers electric vehicles with advanced autonomous driving.'
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.originalContent).toBe('Tesla offers electric vehicles with advanced autonomous driving.');
+    const mismatch = res.body.issues.find((i: any) => i.matchedText === 'Tesla');
+    expect(mismatch).toBeDefined();
+    expect(mismatch.category).toBe('brand_identity');
+    expect(res.body.correctedContent).toBe('Tata Motors offers innovative electric vehicles with reliable engineering.');
+  });
+
+  // Scenario 20: Competitor content with proprietary claims requiring human review via API
+  it('Scenario 20: Competitor content with proprietary claims requiring human review via API', async () => {
+    const res = await request(app)
+      .post('/api/analyze')
+      .send({
+        companyName: 'Tata Motors',
+        industry: 'Automotive',
+        content: 'Tesla Q3 earnings report shows $25B revenue from Cybertruck deliveries and patent 99281.'
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.requiresHumanReview).toBe(true);
+    expect(res.body.correctedContent).toContain('Requires Human Review');
   });
 });

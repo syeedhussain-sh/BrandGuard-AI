@@ -2,7 +2,13 @@ import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { serviceManager, INITIAL_NOVATECH_PROFILE } from '../services/serviceManager';
 import type { ServiceStatus } from '../services/serviceManager';
 import type { BrandSummary, BrandProfile, UpdateBrandRequest } from '../types/brand';
-import type { AnalysisResponse, RecentAnalysisItem } from '../types/analysis';
+import type {
+  AnalysisResponse,
+  RecentAnalysisItem,
+  ReviewDecision,
+  CreateReviewRequest,
+  ReviewMetrics,
+} from '../types/analysis';
 
 export type ActivePage = 'dashboard' | 'guidelines' | 'checker' | 'results';
 
@@ -34,9 +40,23 @@ export interface AppContextType {
   latestOriginalContent: string;
   latestBrandName: string;
   recentAnalyses: RecentAnalysisItem[];
-  recordAnalysis: (brandId: string, brandName: string, content: string, response: AnalysisResponse, industry?: string) => void;
+  isAuditing: boolean;
+  auditError: string | null;
+  activeAuditId: string | null;
+  auditingBrandName: string | null;
+  startAudit: (auditId: string, brandName: string, industry?: string) => void;
+  failAudit: (auditId: string, error: string) => void;
+  clearLatestAnalysis: () => void;
+  recordAnalysis: (brandId: string, brandName: string, content: string, response: AnalysisResponse, industry?: string, auditId?: string) => void;
   viewAnalysisResult: (item: RecentAnalysisItem) => void;
   clearHistory: () => void;
+
+  // Review & Approval Workflow
+  currentReview: ReviewDecision | null;
+  reviewMetrics: ReviewMetrics | null;
+  loadReviewForAnalysis: (analysisId: string) => Promise<ReviewDecision | null>;
+  submitReviewDecision: (data: CreateReviewRequest) => Promise<boolean>;
+  loadReviewMetrics: (brandId?: string) => Promise<void>;
 
   // UI Toast notifications
   toastMessage: { text: string; type: 'success' | 'error' | 'info' } | null;
@@ -83,6 +103,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   });
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  // Review & Approval Workflow State
+  const [currentReview, setCurrentReview] = useState<ReviewDecision | null>(null);
+  const [reviewMetrics, setReviewMetrics] = useState<ReviewMetrics | null>(null);
+
+  // Active Audit and Race-Condition Protection State
+  const [isAuditing, setIsAuditing] = useState<boolean>(false);
+  const [auditError, setAuditError] = useState<string | null>(null);
+  const [activeAuditId, setActiveAuditId] = useState<string | null>(null);
+  const [auditingBrandName, setAuditingBrandName] = useState<string | null>(null);
 
   // Load analysis history from localStorage
   const [recentAnalyses, setRecentAnalyses] = useState<RecentAnalysisItem[]>(() => {
@@ -227,6 +257,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const loadReviewForAnalysis = useCallback(async (analysisId: string): Promise<ReviewDecision | null> => {
+    if (!analysisId) {
+      setCurrentReview(null);
+      return null;
+    }
+    try {
+      const review = await serviceManager.getReviewByAnalysisId(analysisId);
+      setCurrentReview(review);
+      return review;
+    } catch {
+      setCurrentReview(null);
+      return null;
+    }
+  }, []);
+
+  const loadReviewMetrics = useCallback(async (brandId?: string): Promise<void> => {
+    try {
+      const metrics = await serviceManager.getReviewMetrics(brandId);
+      setReviewMetrics(metrics);
+    } catch (err) {
+      console.warn('Failed to load review metrics:', err);
+    }
+  }, []);
+
+  const submitReviewDecision = useCallback(async (data: CreateReviewRequest): Promise<boolean> => {
+    try {
+      const updated = await serviceManager.submitReview(data);
+      setCurrentReview(updated);
+      showToast(
+        updated.status === 'approved'
+          ? `Analysis ${data.analysisId} has been approved by ${data.reviewerName}.`
+          : `Analysis ${data.analysisId} has been rejected by ${data.reviewerName}.`,
+        'success'
+      );
+      loadReviewMetrics();
+      return true;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to record review decision';
+      showToast(msg, 'error');
+      return false;
+    }
+  }, [loadReviewMetrics, showToast]);
+
   // Check whether active company matches a configured brand profile
   const isConfiguredMode = Boolean(
     activeCompanyName.trim().toLowerCase() === 'novatech' ||
@@ -287,8 +360,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           resolvedIndustry = 'Technology and software';
         } else if (lower === 'novatech') {
           resolvedIndustry = 'Enterprise Cloud and AI';
+        } else if (lower.includes('kfc') || lower.includes('subway') || lower.includes('burger') || lower.includes('starbucks')) {
+          resolvedIndustry = 'Food and beverages';
         } else {
-          resolvedIndustry = activeIndustry;
+          resolvedIndustry = '';
         }
       }
       setActiveIndustryState(resolvedIndustry);
@@ -313,31 +388,74 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // NovaTech remains the configured demo brand profile for guidelines editing.
       }
 
-      // Switching between companies: do not retain stale previous results
-      setRecentAnalyses((prev) => {
-        const matchingPrevious = prev.find((item) => (item.brandName || '').toLowerCase() === normalized);
-        if (matchingPrevious) {
-          setLatestAnalysis(matchingPrevious.analysisResult);
-          setLatestOriginalContent(matchingPrevious.originalContent);
-        } else {
-          setLatestAnalysis(null);
-          setLatestOriginalContent('');
+      // Switching between companies: invalidate any stale results if changing company
+      setLatestAnalysis((prev) => {
+        if (prev) {
+          const prevBrand = (prev.companyName || prev.brandName || '').trim().toLowerCase();
+          if (prevBrand !== normalized) {
+            return null;
+          }
         }
         return prev;
       });
+      setAuditError(null);
     },
     [brands, activeIndustry, loadBrandGuidelines]
   );
 
-  const recordAnalysis = (
+  const startAudit = useCallback((auditId: string, brandName: string, industry?: string) => {
+    setActiveAuditId(auditId);
+    setIsAuditing(true);
+    setAuditError(null);
+    setAuditingBrandName(brandName);
+    // Invalidate any previous analysis result immediately so stale results are never shown during a new audit
+    setLatestAnalysis(null);
+    setLatestOriginalContent('');
+    setActiveCompanyNameState(brandName);
+    if (industry) {
+      setActiveIndustryState(industry);
+    }
+  }, []);
+
+  const failAudit = useCallback((auditId: string, error: string) => {
+    setActiveAuditId((currentId) => {
+      if (!currentId || currentId === auditId) {
+        setIsAuditing(false);
+        setAuditError(error);
+        setAuditingBrandName(null);
+        setLatestAnalysis(null);
+        return null;
+      }
+      return currentId;
+    });
+  }, []);
+
+  const clearLatestAnalysis = useCallback(() => {
+    setLatestAnalysis(null);
+    setLatestOriginalContent('');
+    setCurrentReview(null);
+    setAuditError(null);
+    setIsAuditing(false);
+    setActiveAuditId(null);
+    setAuditingBrandName(null);
+  }, []);
+
+  const recordAnalysis = useCallback((
     brandId: string,
     brandName: string,
     content: string,
     response: AnalysisResponse,
-    industry?: string
+    industry?: string,
+    auditId?: string
   ) => {
+    // Race-condition guard: if an auditId was provided and does not match activeAuditId, discard stale response
+    if (auditId && activeAuditId && auditId !== activeAuditId) {
+      console.warn(`[BrandGuard] Discarded stale audit result for id=${auditId} because newer audit id=${activeAuditId} is active`);
+      return;
+    }
+
     const finalCompanyName = response.companyName || response.brandName || brandName;
-    const finalIndustry = response.industry || industry || activeIndustry;
+    const finalIndustry = response.industry || industry || '';
 
     // Immediately synchronize active company name and industry
     setActiveCompanyNameState(finalCompanyName);
@@ -345,6 +463,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setLatestBrandName(finalCompanyName);
     setLatestAnalysis(response);
     setLatestOriginalContent(content);
+    setIsAuditing(false);
+    setAuditError(null);
+    setActiveAuditId(null);
+    setAuditingBrandName(null);
+
+    // Fetch or register review record for this analysis
+    if (response.analysisId) {
+      loadReviewForAnalysis(response.analysisId);
+    }
+    loadReviewMetrics();
 
     try {
       localStorage.setItem(LOCAL_STORAGE_ACTIVE_COMPANY_KEY, finalCompanyName);
@@ -371,7 +499,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setRecentAnalyses((prev) => [newItem, ...prev.filter((i) => i.id !== newItem.id).slice(0, 29)]);
-  };
+  }, [activeAuditId, loadReviewForAnalysis, loadReviewMetrics]);
 
   const viewAnalysisResult = (item: RecentAnalysisItem) => {
     setActiveCompanyNameState(item.brandName);
@@ -381,6 +509,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setLatestBrandName(item.brandName);
     setLatestAnalysis(item.analysisResult);
     setLatestOriginalContent(item.originalContent);
+    setIsAuditing(false);
+    setAuditError(null);
+    setActiveAuditId(null);
+    setAuditingBrandName(null);
+
+    if (item.analysisResult?.analysisId) {
+      loadReviewForAnalysis(item.analysisResult.analysisId);
+    }
 
     try {
       localStorage.setItem(LOCAL_STORAGE_ACTIVE_COMPANY_KEY, item.brandName);
@@ -426,7 +562,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     refreshBrands();
     loadBrandGuidelines('demo-brand');
-  }, [serviceStatus.isMockMode, refreshBrands, loadBrandGuidelines]);
+    loadReviewMetrics();
+  }, [serviceStatus.isMockMode, refreshBrands, loadBrandGuidelines, loadReviewMetrics]);
 
   return (
     <AppContext.Provider
@@ -453,9 +590,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         latestOriginalContent,
         latestBrandName,
         recentAnalyses,
+        isAuditing,
+        auditError,
+        activeAuditId,
+        auditingBrandName,
+        startAudit,
+        failAudit,
+        clearLatestAnalysis,
         recordAnalysis,
         viewAnalysisResult,
         clearHistory,
+        currentReview,
+        reviewMetrics,
+        loadReviewForAnalysis,
+        submitReviewDecision,
+        loadReviewMetrics,
         toastMessage,
         showToast,
       }}

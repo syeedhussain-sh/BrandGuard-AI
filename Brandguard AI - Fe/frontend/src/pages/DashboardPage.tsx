@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import {
   FileText,
   AlertTriangle,
   CheckCircle,
+  CheckCircle2,
+  XCircle,
   FileSearch,
   ArrowRight,
   ShieldCheck,
@@ -27,8 +29,14 @@ export const DashboardPage: React.FC = () => {
     selectedBrandId,
     activeCompanyName,
     activeIndustry,
-    activeGovernanceMode
+    activeGovernanceMode,
+    reviewMetrics,
+    loadReviewMetrics
   } = useApp();
+
+  useEffect(() => {
+    loadReviewMetrics();
+  }, [loadReviewMetrics]);
 
   const isConfigured = activeGovernanceMode === 'configured';
   const displayCompanyName = activeCompanyName || currentProfile?.name || 'NovaTech';
@@ -164,6 +172,72 @@ export const DashboardPage: React.FC = () => {
           <div className="stat-value text-success">{complianceScore}%</div>
           <div className="stat-footer">
             <span className="stat-subtext">Brand alignment score</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Human Review & Approval Workflow Metrics */}
+      <div className="section-title-wrapper mb-3">
+        <h4 className="text-sm font-bold uppercase tracking-wider text-secondary flex-align gap-2">
+          <CheckCircle2 size={16} className="text-primary" />
+          <span>Human Review & Approval Workflow Governance</span>
+        </h4>
+      </div>
+
+      <section className="stats-grid mb-8" aria-label="Review Workflow Metrics">
+        {/* Approved Copy */}
+        <div className="stat-card glass-card">
+          <div className="stat-card-header">
+            <span className="stat-label">Approved Copy</span>
+            <div className="stat-icon-wrapper" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399' }}>
+              <CheckCircle2 size={20} />
+            </div>
+          </div>
+          <div className="stat-value text-success">{reviewMetrics?.approvedCount ?? 0}</div>
+          <div className="stat-footer">
+            <span className="stat-subtext">Certified compliant copy</span>
+          </div>
+        </div>
+
+        {/* Rejected Copy */}
+        <div className="stat-card glass-card">
+          <div className="stat-card-header">
+            <span className="stat-label">Rejected Copy</span>
+            <div className="stat-icon-wrapper icon-danger">
+              <XCircle size={20} />
+            </div>
+          </div>
+          <div className="stat-value text-danger">{reviewMetrics?.rejectedCount ?? 0}</div>
+          <div className="stat-footer">
+            <span className="stat-subtext">Returned for revisions</span>
+          </div>
+        </div>
+
+        {/* Pending Reviews */}
+        <div className="stat-card glass-card">
+          <div className="stat-card-header">
+            <span className="stat-label">Pending Reviews</span>
+            <div className="stat-icon-wrapper" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24' }}>
+              <Clock size={20} />
+            </div>
+          </div>
+          <div className="stat-value" style={{ color: '#fbbf24' }}>{reviewMetrics?.pendingCount ?? 0}</div>
+          <div className="stat-footer">
+            <span className="stat-subtext">Awaiting reviewer sign-off</span>
+          </div>
+        </div>
+
+        {/* Approval Rate */}
+        <div className="stat-card glass-card">
+          <div className="stat-card-header">
+            <span className="stat-label">Approval Rate</span>
+            <div className="stat-icon-wrapper icon-primary">
+              <TrendingUp size={20} />
+            </div>
+          </div>
+          <div className="stat-value text-primary">{reviewMetrics?.approvalRate ?? 100}%</div>
+          <div className="stat-footer">
+            <span className="stat-subtext">Of finalized decisions</span>
           </div>
         </div>
       </section>
@@ -419,6 +493,93 @@ export const DashboardPage: React.FC = () => {
           </div>
         </section>
       </div>
+
+      {/* Persistent Review Decisions Audit Trail */}
+      <section className="glass-card mt-8 p-6" aria-label="Review Audit Trail">
+        <div className="section-header mb-4">
+          <div>
+            <h3 className="section-title">Review & Approval Audit Trail</h3>
+            <p className="section-subtitle">
+              Persistent log of review decisions, reviewer timestamps, and mandatory rejection justifications
+            </p>
+          </div>
+          <span className="badge badge-brand text-xs">
+            Persistent reviews.json Storage
+          </span>
+        </div>
+
+        {(!reviewMetrics?.recentDecisions || reviewMetrics.recentDecisions.length === 0) ? (
+          <div className="empty-state p-6 text-center text-muted text-sm">
+            No formal review decisions recorded yet. Run an audit in the Content Checker and submit an approval or rejection.
+          </div>
+        ) : (
+          <div className="table-responsive">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Analysis ID</th>
+                  <th>Brand / Company</th>
+                  <th>Decision</th>
+                  <th>Reviewer</th>
+                  <th>Decision Date</th>
+                  <th>Rejection Reason / Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reviewMetrics.recentDecisions.map((rev) => (
+                  <tr key={rev.id || rev.analysisId} className="table-row-hover">
+                    <td>
+                      <code>{rev.analysisId}</code>
+                    </td>
+                    <td>
+                      <span className="font-semibold text-white">
+                        {rev.companyName || rev.brandName || 'Brand'}
+                      </span>
+                    </td>
+                    <td>
+                      {rev.status === 'approved' && (
+                        <span className="badge badge-success flex-align gap-1">
+                          <CheckCircle2 size={12} /> Approved
+                        </span>
+                      )}
+                      {rev.status === 'rejected' && (
+                        <span className="badge badge-high flex-align gap-1">
+                          <XCircle size={12} /> Rejected
+                        </span>
+                      )}
+                      {rev.status === 'pending' && (
+                        <span className="badge badge-warning flex-align gap-1">
+                          <Clock size={12} /> Pending Review
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      <div className="text-sm font-medium text-white">
+                        {rev.reviewerName || 'Automated Registration'}
+                      </div>
+                      {rev.reviewerRole && (
+                        <div className="text-xs text-muted">{rev.reviewerRole}</div>
+                      )}
+                    </td>
+                    <td className="text-xs text-secondary">
+                      {new Date(rev.updatedAt).toLocaleString()}
+                    </td>
+                    <td className="text-xs text-secondary" style={{ maxWidth: '280px' }}>
+                      {rev.rejectionReason ? (
+                        <span className="text-rose-300 font-medium">{rev.rejectionReason}</span>
+                      ) : rev.notes ? (
+                        <span>{rev.notes}</span>
+                      ) : (
+                        <span className="text-muted">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   );
 };

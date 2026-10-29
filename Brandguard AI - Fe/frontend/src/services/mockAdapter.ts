@@ -1,5 +1,12 @@
 import type { BrandProfile, BrandSummary, UpdateBrandRequest } from '../types/brand';
-import type { AnalyzeRequest, AnalysisResponse, IssueItem } from '../types/analysis';
+import type {
+  AnalyzeRequest,
+  AnalysisResponse,
+  IssueItem,
+  CreateReviewRequest,
+  ReviewDecision,
+  ReviewMetrics,
+} from '../types/analysis';
 import type { HealthStatus } from '../types/api';
 
 /**
@@ -111,7 +118,12 @@ export const INITIAL_NOVATECH_PROFILE: BrandProfile = {
     ]
   },
   createdAt: '2026-10-22T00:00:00.000Z',
-  updatedAt: '2026-10-22T00:00:00.000Z'
+  updatedAt: '2026-10-22T00:00:00.000Z',
+  approvedFacts: [
+    'NovaTech provides 99.99% availability under our Enterprise SLA.',
+    'NovaTech Cloud Platform is ISO/IEC 27001 certified for cloud security.',
+    'NovaTech was ranked #1 in customer satisfaction by TechReview 2024'
+  ]
 };
 
 const mockBrandsDatabase: Map<string, BrandProfile> = new Map([
@@ -307,9 +319,14 @@ export const devMockAdapter = {
         { name: 'Samsung', aliases: ['Samsung Galaxy', 'Samsung', 'Galaxy Phone'] },
         { name: 'Apple', aliases: ['Apple Inc', 'iPhone', 'iPad', 'Apple'] },
         { name: 'Tata Motors', aliases: ['Tata Motors', 'Tata'] },
+        { name: 'Tesla', aliases: ['Tesla Motors', 'Tesla', 'Cybertruck', 'Model 3', 'Model Y'] },
+        { name: 'Rivian', aliases: ['Rivian Automotive', 'Rivian', 'R1T', 'R1S'] },
         { name: 'MRF Tyres', aliases: ['MRF Tyres', 'MRF'] },
         { name: 'Nike', aliases: ['Nike Running', 'Nike Air', 'Nike'] },
-        { name: "McDonald's", aliases: ["McDonald's", 'McDonalds', 'Big Mac'] }
+        { name: "McDonald's", aliases: ["McDonald's", 'McDonalds', 'Big Mac'] },
+        { name: 'KFC', aliases: ['Kentucky Fried Chicken', 'KFC'] },
+        { name: 'Subway', aliases: ['Subway Footlong', 'Subway'] },
+        { name: 'Burger King', aliases: ['Burger King', 'Whopper'] }
       ];
 
       for (const fb of foreignBrands) {
@@ -325,15 +342,26 @@ export const devMockAdapter = {
               const matchedText = match[0];
               const alreadyCaught = issues.some((i) => i.matchedText === matchedText);
               if (!alreadyCaught) {
+                let suggestion = `Verify whether "${matchedText}" was intended or if the wrong brand or industry was selected in settings; preserve product identity.`;
+                const lowerComp = company.toLowerCase();
+                const lowerMatched = matchedText.toLowerCase();
+
+                if (lowerComp.includes('kfc') && (lowerMatched.includes('mcdonald') || lowerMatched.includes('burger king') || lowerMatched.includes('subway'))) {
+                  suggestion = "Enjoy KFC's signature fried chicken and delicious sides.";
+                  corrected = "Enjoy KFC's signature fried chicken and delicious sides.";
+                } else if (lowerComp.includes('tata motors') && lowerMatched.includes('tesla')) {
+                  suggestion = "Tata Motors offers innovative electric vehicles with reliable engineering.";
+                  corrected = "Tata Motors offers innovative electric vehicles with reliable engineering.";
+                }
+
                 issues.push({
                   id: `iss_${issueCounter++}`,
-                  category: 'terminology',
+                  category: 'brand_identity',
                   severity: 'high',
                   matchedText,
-                  explanation: `Content references "${matchedText}", which appears to be a different company than the selected brand ("${company}"). Ensure marketing copy aligns with the intended brand identity.`,
-                  suggestion: `Replace with "${company}" if this material is intended for ${company}, or clarify the context.`
+                  explanation: `Content references competitor "${matchedText}", which conflicts with selected brand "${company}". Ensure marketing copy reinforces the intended brand identity.`,
+                  suggestion
                 });
-                corrected = corrected.replace(new RegExp(`\\b${escapeRegExp(matchedText)}\\b`, 'gi'), company);
               }
             }
           }
@@ -398,8 +426,77 @@ export const devMockAdapter = {
         ? undefined
         : 'Official brand guidelines are not configured for this brand. Content was evaluated using universal brand governance principles and general industry risk indicators.'
     };
+  },
+
+  async submitReview(data: CreateReviewRequest): Promise<ReviewDecision> {
+    const existingIndex = mockReviews.findIndex((r) => r.analysisId === data.analysisId);
+    const now = new Date().toISOString();
+    if (existingIndex !== -1) {
+      const existing = mockReviews[existingIndex];
+      const updated: ReviewDecision = {
+        ...existing,
+        status: data.status,
+        reviewerName: data.reviewerName,
+        reviewerRole: data.reviewerRole || existing.reviewerRole,
+        reviewerEmail: data.reviewerEmail || existing.reviewerEmail,
+        notes: data.notes || existing.notes,
+        rejectionReason: data.status === 'rejected' ? data.rejectionReason : undefined,
+        updatedAt: now,
+      };
+      mockReviews[existingIndex] = updated;
+      return updated;
+    }
+    const created: ReviewDecision = {
+      id: `rev_mock_${Math.random().toString(36).slice(2, 9)}`,
+      analysisId: data.analysisId,
+      brandId: data.brandId,
+      brandName: data.brandName,
+      companyName: data.companyName,
+      industry: data.industry,
+      contentSnippet: data.contentSnippet,
+      status: data.status,
+      reviewerName: data.reviewerName,
+      reviewerRole: data.reviewerRole,
+      reviewerEmail: data.reviewerEmail,
+      notes: data.notes,
+      rejectionReason: data.status === 'rejected' ? data.rejectionReason : undefined,
+      createdAt: now,
+      updatedAt: now,
+    };
+    mockReviews.push(created);
+    return created;
+  },
+
+  async getReviewByAnalysisId(analysisId: string): Promise<ReviewDecision | null> {
+    return mockReviews.find((r) => r.analysisId === analysisId) || null;
+  },
+
+  async getReviewMetrics(brandId?: string): Promise<ReviewMetrics> {
+    const filtered = brandId
+      ? mockReviews.filter((r) => r.brandId === brandId)
+      : mockReviews;
+    const totalAnalysesReviewed = filtered.length;
+    const approvedCount = filtered.filter((r) => r.status === 'approved').length;
+    const rejectedCount = filtered.filter((r) => r.status === 'rejected').length;
+    const pendingCount = filtered.filter((r) => r.status === 'pending').length;
+    const finalized = approvedCount + rejectedCount;
+    const approvalRate = finalized > 0 ? Math.round((approvedCount / finalized) * 100) : 100;
+    return {
+      totalAnalysesReviewed,
+      approvedCount,
+      rejectedCount,
+      pendingCount,
+      approvalRate,
+      recentDecisions: [...filtered].reverse().slice(0, 10),
+    };
+  },
+
+  async getReviews(): Promise<ReviewDecision[]> {
+    return [...mockReviews].reverse();
   }
 };
+
+const mockReviews: ReviewDecision[] = [];
 
 function escapeRegExp(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

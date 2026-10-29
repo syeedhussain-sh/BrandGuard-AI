@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.analyzeContent = analyzeContent;
 const brandService = __importStar(require("../services/brandService"));
 const analysisService = __importStar(require("../services/analysisService"));
+const reviewService = __importStar(require("../services/reviewService"));
 /**
  * POST /api/analyze
  *
@@ -104,6 +105,17 @@ async function analyzeContent(req, res) {
                 industry: rawIndustry || brandProfile.description,
                 isGeneric: false,
             });
+            if (result.requiresHumanReview || (result.summary && result.summary.high > 0)) {
+                reviewService.createOrUpdateReview({
+                    analysisId: result.analysisId,
+                    brandId: brandProfile.id,
+                    brandName: brandProfile.name,
+                    companyName: rawCompany || brandProfile.name,
+                    industry: rawIndustry,
+                    contentSnippet: content.slice(0, 160),
+                    status: 'pending',
+                }).catch((err) => console.error('Failed to register pending review:', err));
+            }
             res.status(200).json(result);
             return;
         }
@@ -141,6 +153,17 @@ async function analyzeContent(req, res) {
             isGeneric: true,
             mode: 'generic'
         });
+        if (result.requiresHumanReview || (result.summary && result.summary.high > 0)) {
+            reviewService.createOrUpdateReview({
+                analysisId: result.analysisId,
+                brandId: genericBrand.id,
+                brandName: rawCompany,
+                companyName: rawCompany,
+                industry: rawIndustry,
+                contentSnippet: content.slice(0, 160),
+                status: 'pending',
+            }).catch((err) => console.error('Failed to register pending review:', err));
+        }
         res.status(200).json(result);
     }
     catch (error) {

@@ -1,4 +1,9 @@
-# BrandGuard AI — Brand Compliance Analysis Engine (Member 3)
+# BrandGuard AI — Brand Compliance Analysis Engine
+
+> 🏆 **Hackathon:** TechCircuit Hackathon | **Problem Statement Provider:** Inkloom AI  
+> 👥 **Team:** ChipSmiths (Syeed Hussain S H, U Tamilarasu, Shyam G R, Sandep S)  
+> 🔬 **Engine & QA Lead:** Sandep S  
+> 🧪 **Engine Tests:** 12 test files, 94 tests passed (100% passing)
 
 A high-performance, deterministic brand compliance analysis engine built with TypeScript, Node.js, and Vitest. This module is self-contained, completely independent of Express or any database, and strictly implements the official specifications from `API_CONTRACT.md`.
 

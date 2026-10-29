@@ -1,6 +1,9 @@
-# BrandGuard AI
+# BrandGuard AI — Backend Service
 
-> AI-Powered Brand Governance & Content Compliance System
+> AI-Powered Brand Governance & Content Compliance System  
+> 🏆 **Hackathon:** TechCircuit Hackathon | **Problem Statement Provider:** Inkloom AI  
+> 👥 **Team:** ChipSmiths (Syeed Hussain S H, U Tamilarasu, Shyam G R, Sandep S)  
+> ⚙️ **Backend Lead:** Shyam G R
 
 BrandGuard AI safeguards enterprise communication consistency by automatically analyzing written content against official brand guidelines, prohibited terminology, tone parameters, and legal claims.
 
@@ -75,5 +78,9 @@ BrandGuard-AI/
 - `GET  /api/brands/:brandId` — Fetch detailed guidelines for a brand
 - `PUT  /api/brands/:brandId` — Update guidelines for a brand
 - `POST /api/analyze` — Run brand compliance analysis
+- `POST /api/reviews` — Record human review approval or rejection decision
+- `GET  /api/reviews` — List all review decisions
+- `GET  /api/reviews/metrics` — Dashboard review metrics and approval rate
+- `GET  /api/reviews/analysis/:analysisId` — Fetch review decision for a specific analysis
 
 Full documentation and TypeScript signatures are available in [API_CONTRACT.md](./API_CONTRACT.md).

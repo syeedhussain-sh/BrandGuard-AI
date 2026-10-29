@@ -32,6 +32,39 @@ interface PresetOption {
 
 const MULTI_INDUSTRY_PRESETS: PresetOption[] = [
   {
+    company: 'KFC',
+    industry: 'Food',
+    isConfigured: false,
+    label: 'KFC (Product Preservation)',
+    badge: 'Mode B: Identity Test',
+    description: 'Verifies product identity preservation: "Nova Cloud" is preserved and never replaced with "KFC"',
+    icon: <Utensils size={16} />,
+    content:
+      'Our Nova Cloud is the cheapest cloud in the market and it is obviously 100% bug-free. We guarantee total perfection.'
+  },
+  {
+    company: 'KFC',
+    industry: 'Food',
+    isConfigured: false,
+    label: 'KFC (Contextual Mismatch)',
+    badge: 'Mode B: Product Mismatch',
+    description: 'Flags vehicle offering under a food brand and corrects it to quality food and service',
+    icon: <Utensils size={16} />,
+    content:
+      'KFC provides good bike and good services.'
+  },
+  {
+    company: 'KFC',
+    industry: 'Food',
+    isConfigured: false,
+    label: 'KFC (Legitimate Delivery)',
+    badge: 'Mode B: Legitimate Context',
+    description: 'Recognizes bicycle delivery as legitimate food logistics and produces zero false positives',
+    icon: <Utensils size={16} />,
+    content:
+      'We deliver meals using bicycles in selected locations.'
+  },
+  {
     company: 'NovaTech',
     industry: 'Enterprise Cloud and AI',
     isConfigured: true,
@@ -115,6 +148,8 @@ export const ContentCheckerPage: React.FC = () => {
     brands,
     selectedBrandId,
     setSelectedBrandId,
+    startAudit,
+    failAudit,
     recordAnalysis,
     setActivePage,
     serviceStatus,
@@ -189,12 +224,14 @@ export const ContentCheckerPage: React.FC = () => {
       return;
     }
 
+    const auditId = `audit_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     setIsSubmitting(true);
 
-    try {
-      // Synchronize active company with shared state immediately
-      setActiveCompany(trimmedCompany, industry.trim());
+    // Initialize audit in global state and navigate to results immediately to show loading progress
+    startAudit(auditId, trimmedCompany, industry.trim());
+    setActivePage('results');
 
+    try {
       const targetBrandId = matchedBrand ? matchedBrand.id : (isConfiguredMode ? 'demo-brand' : undefined);
 
       const { response, source } = await serviceManager.analyzeContent({
@@ -204,13 +241,14 @@ export const ContentCheckerPage: React.FC = () => {
         content: trimmedContent
       });
 
-      // Record to history and application state
+      // Record to history and application state (validated by auditId)
       recordAnalysis(
         targetBrandId || trimmedCompany.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         response.companyName || trimmedCompany,
         trimmedContent,
         response,
-        industry.trim() || undefined
+        industry.trim() || undefined,
+        auditId
       );
 
       const modeText = response.officialGuidelinesConfigured
@@ -223,13 +261,11 @@ export const ContentCheckerPage: React.FC = () => {
         }.`,
         'success'
       );
-
-      // Navigate to results page
-      setActivePage('results');
     } catch (err: unknown) {
       const errorStr =
         err instanceof Error ? err.message : 'Analysis request failed against backend server.';
       setErrorMessage(errorStr);
+      failAudit(auditId, errorStr);
       showToast(errorStr, 'error');
     } finally {
       setIsSubmitting(false);

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as brandService from '../services/brandService';
 import * as analysisService from '../services/analysisService';
+import * as reviewService from '../services/reviewService';
 import { ApiErrorResponse, BrandProfile } from '../types';
 
 /**
@@ -80,6 +81,18 @@ export async function analyzeContent(req: Request, res: Response): Promise<void>
         isGeneric: false,
       });
 
+      if (result.requiresHumanReview || (result.summary && result.summary.high > 0)) {
+        reviewService.createOrUpdateReview({
+          analysisId: result.analysisId,
+          brandId: brandProfile.id,
+          brandName: brandProfile.name,
+          companyName: rawCompany || brandProfile.name,
+          industry: rawIndustry,
+          contentSnippet: content.slice(0, 160),
+          status: 'pending',
+        }).catch((err) => console.error('Failed to register pending review:', err));
+      }
+
       res.status(200).json(result);
       return;
     }
@@ -120,6 +133,18 @@ export async function analyzeContent(req: Request, res: Response): Promise<void>
       isGeneric: true,
       mode: 'generic'
     });
+
+    if (result.requiresHumanReview || (result.summary && result.summary.high > 0)) {
+      reviewService.createOrUpdateReview({
+        analysisId: result.analysisId,
+        brandId: genericBrand.id,
+        brandName: rawCompany,
+        companyName: rawCompany,
+        industry: rawIndustry,
+        contentSnippet: content.slice(0, 160),
+        status: 'pending',
+      }).catch((err) => console.error('Failed to register pending review:', err));
+    }
 
     res.status(200).json(result);
   } catch (error) {

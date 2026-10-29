@@ -26,5 +26,35 @@ export declare const KNOWN_BRAND_REGISTRY: BrandEntity[];
  * @param selectedIndustry - The active industry selected (optional).
  * @returns Array of AnalysisIssue items flagging detected company identity mismatches.
  */
+/**
+ * Result of generating a safe, contextual correction for competitor brand references.
+ */
+export interface CompetitorCorrection {
+    canCorrect: boolean;
+    requiresHumanReview: boolean;
+    suggestedText: string;
+    explanation: string;
+}
+/**
+ * Extracts enclosing sentence around a text span.
+ */
+export declare function getEnclosingSentence(content: string, startIndex: number, endIndex: number): {
+    sentence: string;
+    start: number;
+    end: number;
+};
+/**
+ * Generates a safe, brand-appropriate correction or marks content for human review.
+ */
+export declare function generateCompetitorBrandCorrection(content: string, startIndex: number, endIndex: number, matchedText: string, competitorEntity: BrandEntity, selectedCompany: string, selectedIndustry?: string): CompetitorCorrection;
+/**
+ * Checks content for references to foreign companies or competitor entities
+ * that differ from the selected active company.
+ *
+ * @param content - The marketing copy submitted by the user.
+ * @param selectedCompany - The active company or brand name selected in the audit context.
+ * @param selectedIndustry - The active industry selected (optional).
+ * @returns Array of AnalysisIssue items flagging detected company identity mismatches.
+ */
 export declare function checkCompanyIdentityMismatch(content: string, selectedCompany?: string, selectedIndustry?: string): AnalysisIssue[];
 //# sourceMappingURL=brandMismatchChecker.d.ts.map

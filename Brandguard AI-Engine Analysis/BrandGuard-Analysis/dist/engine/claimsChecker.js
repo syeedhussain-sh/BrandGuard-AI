@@ -1,81 +1,211 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.findSubstantiatingFact = findSubstantiatingFact;
+exports.verifyContentClaims = verifyContentClaims;
 exports.checkClaimsRequiringVerification = checkClaimsRequiringVerification;
 const utils_js_1 = require("./utils.js");
 const CLAIM_PATTERNS = [
+    // 1. Availability and SLA claims (e.g. 99.99% availability under Enterprise SLA)
+    {
+        regex: /\b(?:delivers?|provides?|guarantees?|offers?)\s+\d+(?:\.\d+)?%\s+availability(?:\s+under\s+(?:our\s+)?Enterprise\s+SLA)?\b/gi,
+        claimType: 'availability SLA claim',
+        severity: 'medium',
+        verificationStatus: 'requires_review',
+        requiresHumanReview: true,
+        defaultExplanation: (matched) => `Availability claim "${matched}" requires substantiation against approved enterprise SLA terms or published uptime metrics.`,
+        defaultSuggestion: (matched) => `Reference official Enterprise SLA terms or approved availability metrics for "${matched}"`,
+    },
+    {
+        regex: /\b\d+(?:\.\d+)?%\s+availability(?:\s+under\s+(?:our\s+)?Enterprise\s+SLA)?\b/gi,
+        claimType: 'availability metric claim',
+        severity: 'medium',
+        verificationStatus: 'requires_review',
+        requiresHumanReview: true,
+        defaultExplanation: (matched) => `Service availability metric "${matched}" requires substantiation against approved brand SLA commitments.`,
+        defaultSuggestion: (matched) => `Reference official Enterprise SLA documentation or approved uptime benchmarks for "${matched}"`,
+    },
+    // 2. Absolute technical and operational guarantees (high severity, unsupported without audited proof)
+    {
+        regex: /\b(?:guarantees?\s+)?100%\s+bug-free(?:\s+operation)?\b/gi,
+        claimType: 'absolute bug-free guarantee',
+        severity: 'high',
+        verificationStatus: 'unsupported',
+        requiresHumanReview: false,
+        defaultExplanation: (matched) => `Absolute guarantee "${matched}" cannot be verified without audited technical proof. Software and complex systems carry inherent operational risk.`,
+        defaultSuggestion: () => 'is designed for high reliability and resilience',
+    },
+    {
+        regex: /\b(?:zero\s+risk|risk-free\s+guarantee)\b/gi,
+        claimType: 'risk-free claim',
+        severity: 'high',
+        verificationStatus: 'unsupported',
+        requiresHumanReview: false,
+        defaultExplanation: (matched) => `Absolute guarantee "${matched}" cannot be verified without audited technical proof. Complex systems and commercial deployments carry inherent operational risk.`,
+        defaultSuggestion: () => 'minimized operational risk',
+    },
+    // 3. Quantitative performance and efficiency claims (requires review / audited benchmarks)
+    {
+        regex: /(?:reduces?|cuts?|saves?|improves?|increases?|boosts?|delivers?)\s+[^.!?,\n]{0,60}?(?:by\s+)?(?:\d+(?:\.\d+)?%|\d+x|\d+\s*(?:times|fold))(?!\w)/gi,
+        claimType: 'quantitative performance claim',
+        severity: 'medium',
+        verificationStatus: 'requires_review',
+        requiresHumanReview: true,
+        defaultExplanation: (matched) => `Quantitative performance claim "${matched}" requires audited benchmarks, empirical case studies, or approved supporting evidence.`,
+        defaultSuggestion: (matched) => `Cite audited benchmark data, case study methodology, or qualify "${matched}" with verified deployment parameters`,
+    },
+    {
+        regex: /\b(?:\d+(?:\.\d+)?%|\d+x|\d+\s*(?:times|fold))\s+(?:overhead|reduction|savings|faster|cheaper|efficiency|increase|growth|performance|boost|latency)\b/gi,
+        claimType: 'quantitative efficiency claim',
+        severity: 'medium',
+        verificationStatus: 'requires_review',
+        requiresHumanReview: true,
+        defaultExplanation: (matched) => `Quantitative performance claim "${matched}" requires audited benchmarks, empirical case studies, or approved supporting evidence.`,
+        defaultSuggestion: (matched) => `Cite audited benchmark results or qualify "${matched}" with specific test conditions`,
+    },
+    // 4. Customer satisfaction & superlative claims
     {
         regex: /\b100%\s+customer\s+satisfaction\b/gi,
         claimType: 'absolute satisfaction guarantee',
+        severity: 'medium',
+        verificationStatus: 'requires_review',
         defaultSuggestion: () => 'Rephrase to "committed to high customer satisfaction" or cite survey data',
     },
     {
         regex: /\bguarantees?\s+100%\s+customer\s+satisfaction\b/gi,
         claimType: 'absolute satisfaction guarantee',
+        severity: 'medium',
+        verificationStatus: 'unsupported',
         defaultSuggestion: () => 'Rephrase to "strives for exceptional customer satisfaction" or attach verified survey evidence',
     },
     {
         regex: /\b(cheapest|best|fastest|lowest|highest|most\s+reliable)\s+(in\s+the\s+world|on\s+earth|in\s+the\s+market|on\s+the\s+market)\b/gi,
         claimType: 'global superlative claim',
+        severity: 'medium',
+        verificationStatus: 'unsupported',
         defaultSuggestion: (matched) => `Qualify claim or replace with "one of the ${matched.split(' ')[0]} options" unless substantiated`,
     },
     {
         regex: /(?:\bnumber\s+one|\bno\.?\s*1|#1)\s+(?:in\s+the\s+market|in\s+the\s+world|brand|solution)\b/gi,
         claimType: 'market leadership claim',
+        severity: 'medium',
+        verificationStatus: 'requires_review',
         defaultSuggestion: () => 'Provide third-party ranking source/citation or rephrase to "leading provider"',
     },
     {
         regex: /\b(unbeatable\s+price|lowest\s+price\s+guaranteed?)\b/gi,
         claimType: 'absolute pricing claim',
+        severity: 'high',
+        verificationStatus: 'unsupported',
         defaultSuggestion: () => 'Rephrase to "competitive pricing" or reference official price match policy',
     },
     {
         regex: /\b(100%\s+guaranteed?|unconditional\s+guarantee)\b/gi,
         claimType: 'absolute guarantee claim',
+        severity: 'high',
+        verificationStatus: 'unsupported',
         defaultSuggestion: () => 'Clarify terms of warranty/guarantee or specify "satisfaction pledge"',
     },
     {
-        regex: /\b(zero\s+risk|risk-free\s+guarantee)\b/gi,
-        claimType: 'risk-free claim',
-        defaultSuggestion: () => 'State specific return or trial policy terms instead of claiming absolute zero risk',
+        regex: /\b(?:the\s+)?world['’]?s\s+best\b/gi,
+        claimType: 'global superlative claim',
+        severity: 'high',
+        verificationStatus: 'unsupported',
+        defaultSuggestion: () => 'Rephrase to "a leading solution" or provide verifiable independent benchmark rankings',
+    },
+    {
+        regex: /\bguarantees?\s+perfect\s+results(?:\s+every\s+time)?\b/gi,
+        claimType: 'absolute performance claim',
+        severity: 'high',
+        verificationStatus: 'unsupported',
+        defaultSuggestion: () => 'Rephrase to "designed to deliver consistent, high-quality results" as perfection cannot be guaranteed',
+    },
+    {
+        regex: /\b(?:completely\s+)?immune\s+to\s+(?:every|all)\s+cyberattacks?\b/gi,
+        claimType: 'absolute security claim',
+        severity: 'high',
+        verificationStatus: 'unsupported',
+        defaultSuggestion: () => 'Rephrase to "engineered with robust defenses against modern cyberattacks" as no system is 100% immune',
     },
 ];
+const STOP_WORDS = new Set([
+    'the', 'and', 'for', 'with', 'in', 'on', 'of', 'to', 'is', 'was', 'are', 'by',
+    'our', 'an', 'a', 'under', 'their', 'its', 'your', 'we', 'you', 'that', 'this',
+    'from', 'as', 'at', 'be', 'has', 'have', 'had'
+]);
 /**
- * Checks whether an approved fact substantiates a matched claim.
+ * Searches approved brand facts to find a substantiating reference for a given claim or sentence.
  */
-function isClaimSubstantiated(matchedText, approvedFacts) {
+function findSubstantiatingFact(claimText, approvedFacts, sentenceContext) {
     if (!approvedFacts || approvedFacts.length === 0)
-        return false;
-    const cleanMatched = matchedText.toLowerCase().replace(/[^\w\s%]/g, '').trim();
+        return null;
+    const targetTexts = [claimText, sentenceContext].filter((t) => Boolean(t && t.trim()));
     for (const fact of approvedFacts) {
-        if (typeof fact !== 'string')
+        if (typeof fact !== 'string' || !fact.trim())
             continue;
-        const cleanFact = fact.toLowerCase().replace(/[^\w\s%]/g, '').trim();
-        // Check if fact directly mentions or validates the claim
-        if (cleanFact.includes(cleanMatched) || cleanMatched.includes(cleanFact)) {
-            return true;
-        }
-        // Check if key substantive words overlap significantly (excluding stop words)
-        const stopWords = new Set(['the', 'and', 'for', 'with', 'in', 'on', 'of', 'to', 'is', 'was', 'are', 'by', 'our', 'an', 'a']);
-        const claimKeywords = cleanMatched
-            .split(/\s+/)
-            .filter((w) => w.length > 2 && !stopWords.has(w));
-        if (claimKeywords.length >= 2) {
-            const matchCount = claimKeywords.filter((kw) => cleanFact.includes(kw)).length;
-            if (matchCount === claimKeywords.length) {
-                return true;
+        const cleanFact = fact.toLowerCase().replace(/[^\w\s%#.-]/g, ' ').replace(/\s+/g, ' ').trim();
+        for (const target of targetTexts) {
+            const cleanTarget = target.toLowerCase().replace(/[^\w\s%#.-]/g, ' ').replace(/\s+/g, ' ').trim();
+            // 1. Direct inclusion
+            if (cleanFact.includes(cleanTarget) || cleanTarget.includes(cleanFact)) {
+                return {
+                    fact,
+                    citation: `Approved Brand Fact: "${fact}"`,
+                };
+            }
+            // 2. Keyword & metric overlap analysis
+            const factTokens = cleanFact.split(/\s+/).filter((w) => w.length > 2 && !STOP_WORDS.has(w));
+            const targetTokens = cleanTarget.split(/\s+/).filter((w) => w.length > 2 && !STOP_WORDS.has(w));
+            if (targetTokens.length >= 2 && factTokens.length >= 2) {
+                // Check for specific numerical / percentage / ranking metric
+                const targetMetrics = cleanTarget.match(/\b(?:\d+(?:\.\d+)?%|#\d+|\bno\.?\s*\d+)\b/g);
+                if (targetMetrics) {
+                    const allMetricsPresent = targetMetrics.every((m) => cleanFact.includes(m));
+                    if (!allMetricsPresent) {
+                        continue; // Mismatched metric, cannot substantiate
+                    }
+                }
+                const matchCount = targetTokens.filter((kw) => cleanFact.includes(kw)).length;
+                const overlapRatio = matchCount / targetTokens.length;
+                // If >= 60% of significant keywords overlap and matchCount >= 2
+                if (matchCount >= 2 && overlapRatio >= 0.6) {
+                    return {
+                        fact,
+                        citation: `Approved Brand Fact: "${fact}"`,
+                    };
+                }
             }
         }
     }
-    return false;
+    return null;
 }
 /**
- * Checks for unsupported claims requiring verification.
- * Note: Claims are NOT marked false; they are flagged as requiring verification.
+ * Extracts the surrounding sentence for a given substring within content.
  */
-function checkClaimsRequiringVerification(content, profile) {
+function extractSentence(content, startIndex, endIndex) {
+    const before = content.substring(0, startIndex);
+    const after = content.substring(endIndex);
+    const prevPeriod = Math.max(before.lastIndexOf('.'), before.lastIndexOf('!'), before.lastIndexOf('?'));
+    const start = prevPeriod === -1 ? 0 : prevPeriod + 1;
+    const nextPeriod = after.search(/[.!?]/);
+    const end = nextPeriod === -1 ? content.length : endIndex + nextPeriod + 1;
+    return content.substring(start, end).trim();
+}
+/**
+ * Primary claim verification function.
+ * Evaluates claims in content against brand rules and approved brand facts.
+ *
+ * Returns:
+ * - issues: Unsubstantiated claims, absolute guarantees, or claims requiring review.
+ * - supportedClaims: Claims verified and substantiated by approved brand facts.
+ */
+function verifyContentClaims(content, profile) {
     const issues = [];
+    const supportedClaims = [];
     if (!content)
-        return issues;
+        return { issues, supportedClaims };
+    const approvedFacts = Array.isArray(profile?.approvedFacts) ? profile.approvedFacts : [];
+    // Track claimed spans that have been verified as supported
+    const supportedSpans = [];
     // 1. Guidelines claimVerification rules (Contract Section 5)
     if (profile?.guidelines?.claimVerification && Array.isArray(profile.guidelines.claimVerification)) {
         for (const rule of profile.guidelines.claimVerification) {
@@ -91,12 +221,30 @@ function checkClaimsRequiringVerification(content, profile) {
                     const matchedText = match[0];
                     const startIndex = match.index;
                     const endIndex = match.index + matchedText.length;
+                    const sentence = extractSentence(content, startIndex, endIndex);
+                    // Check if substantiated by approved facts
+                    const substantiation = findSubstantiatingFact(matchedText, approvedFacts, sentence);
+                    if (substantiation) {
+                        supportedClaims.push({
+                            claimText: sentence || matchedText,
+                            matchedText,
+                            status: 'supported',
+                            supportingFact: substantiation.fact,
+                            evidenceCitation: substantiation.citation,
+                            explanation: `Claim "${matchedText}" is substantiated by approved brand evidence: "${substantiation.fact}".`,
+                            startIndex,
+                            endIndex,
+                        });
+                        supportedSpans.push({ start: startIndex, end: endIndex });
+                        continue;
+                    }
                     const alreadyCaught = issues.some((i) => i.startIndex === startIndex && i.endIndex === endIndex);
                     if (!alreadyCaught) {
                         issues.push({
                             id: (0, utils_js_1.generateIssueId)('claim_verification'),
                             category: 'claim_verification',
                             severity: rule.severity || 'high',
+                            verificationStatus: 'unsupported',
                             matchedText,
                             explanation: rule.explanation ||
                                 `Claim "${matchedText}" requires verification according to brand compliance guidelines.`,
@@ -111,24 +259,42 @@ function checkClaimsRequiringVerification(content, profile) {
                 // Fallback to literal search if regex fails
                 const occurrences = content.toLowerCase().indexOf(rule.claimPattern.toLowerCase());
                 if (occurrences !== -1) {
-                    issues.push({
-                        id: (0, utils_js_1.generateIssueId)('claim_verification'),
-                        category: 'claim_verification',
-                        severity: rule.severity || 'high',
-                        matchedText: content.substring(occurrences, occurrences + rule.claimPattern.length),
-                        explanation: rule.explanation || `Claim requires verification.`,
-                        suggestion: rule.suggestion || '',
-                        startIndex: occurrences,
-                        endIndex: occurrences + rule.claimPattern.length,
-                    });
+                    const matchedText = content.substring(occurrences, occurrences + rule.claimPattern.length);
+                    const startIndex = occurrences;
+                    const endIndex = occurrences + rule.claimPattern.length;
+                    const sentence = extractSentence(content, startIndex, endIndex);
+                    const substantiation = findSubstantiatingFact(matchedText, approvedFacts, sentence);
+                    if (substantiation) {
+                        supportedClaims.push({
+                            claimText: sentence || matchedText,
+                            matchedText,
+                            status: 'supported',
+                            supportingFact: substantiation.fact,
+                            evidenceCitation: substantiation.citation,
+                            explanation: `Claim "${matchedText}" is substantiated by approved brand evidence: "${substantiation.fact}".`,
+                            startIndex,
+                            endIndex,
+                        });
+                        supportedSpans.push({ start: startIndex, end: endIndex });
+                    }
+                    else {
+                        issues.push({
+                            id: (0, utils_js_1.generateIssueId)('claim_verification'),
+                            category: 'claim_verification',
+                            severity: rule.severity || 'high',
+                            verificationStatus: 'unsupported',
+                            matchedText,
+                            explanation: rule.explanation || `Claim requires verification.`,
+                            suggestion: rule.suggestion || '',
+                            startIndex,
+                            endIndex,
+                        });
+                    }
                 }
             }
         }
     }
     // 2. Built-in claim patterns and approvedFacts substantiation
-    const approvedFacts = Array.isArray(profile?.approvedFacts)
-        ? profile.approvedFacts
-        : [];
     for (const cp of CLAIM_PATTERNS) {
         const regex = new RegExp(cp.regex.source, 'gi');
         let match;
@@ -136,18 +302,43 @@ function checkClaimsRequiringVerification(content, profile) {
             const matchedText = match[0];
             const startIndex = match.index;
             const endIndex = match.index + matchedText.length;
-            // Check if evidence is available in approvedFacts
-            if (isClaimSubstantiated(matchedText, approvedFacts)) {
+            const sentence = extractSentence(content, startIndex, endIndex);
+            // Check if already marked as supported
+            const isAlreadySupported = supportedSpans.some((span) => (startIndex >= span.start && endIndex <= span.end) || (span.start >= startIndex && span.end <= endIndex));
+            if (isAlreadySupported) {
                 continue;
             }
+            // Check if evidence is available in approvedFacts
+            const substantiation = findSubstantiatingFact(matchedText, approvedFacts, sentence);
+            if (substantiation) {
+                supportedClaims.push({
+                    claimText: sentence || matchedText,
+                    matchedText,
+                    status: 'supported',
+                    supportingFact: substantiation.fact,
+                    evidenceCitation: substantiation.citation,
+                    explanation: `Claim "${matchedText}" is substantiated by approved brand evidence: "${substantiation.fact}".`,
+                    startIndex,
+                    endIndex,
+                });
+                supportedSpans.push({ start: startIndex, end: endIndex });
+                continue;
+            }
+            // Check if already caught
             const alreadyCaught = issues.some((i) => i.startIndex === startIndex && i.endIndex === endIndex);
             if (!alreadyCaught) {
+                const severity = cp.severity || 'medium';
+                const verificationStatus = cp.verificationStatus || (severity === 'high' ? 'unsupported' : 'requires_review');
+                const requiresHumanReview = cp.requiresHumanReview !== undefined ? cp.requiresHumanReview : verificationStatus === 'requires_review';
                 issues.push({
                     id: (0, utils_js_1.generateIssueId)('claim_verification'),
                     category: 'claim_verification',
-                    severity: 'medium',
+                    severity,
+                    verificationStatus,
+                    requiresHumanReview: requiresHumanReview ? true : undefined,
                     matchedText,
-                    explanation: `Claim "${matchedText}" requires empirical verification or substantiation against approved facts.`,
+                    explanation: cp.defaultExplanation?.(matchedText) ||
+                        `Claim "${matchedText}" requires empirical verification or substantiation against approved facts.`,
                     suggestion: cp.defaultSuggestion(matchedText),
                     startIndex,
                     endIndex,
@@ -155,6 +346,35 @@ function checkClaimsRequiringVerification(content, profile) {
             }
         }
     }
-    return issues;
+    // 3. Direct approved fact inclusion check
+    for (const fact of approvedFacts) {
+        if (typeof fact === 'string' && fact.trim().length > 5) {
+            const cleanFact = fact.trim().toLowerCase();
+            const cleanContent = content.toLowerCase();
+            if (cleanContent.includes(cleanFact)) {
+                const idx = cleanContent.indexOf(cleanFact);
+                const alreadySupported = supportedClaims.some((sc) => sc.supportingFact === fact);
+                if (!alreadySupported) {
+                    supportedClaims.push({
+                        claimText: fact,
+                        matchedText: content.substring(idx, idx + fact.length),
+                        status: 'supported',
+                        supportingFact: fact,
+                        evidenceCitation: `Approved Brand Fact: "${fact}"`,
+                        explanation: `Claim is substantiated by approved brand evidence: "${fact}".`,
+                        startIndex: idx,
+                        endIndex: idx + fact.length,
+                    });
+                }
+            }
+        }
+    }
+    return { issues, supportedClaims };
+}
+/**
+ * Backwards compatibility helper returning only issues.
+ */
+function checkClaimsRequiringVerification(content, profile) {
+    return verifyContentClaims(content, profile).issues;
 }
 //# sourceMappingURL=claimsChecker.js.map

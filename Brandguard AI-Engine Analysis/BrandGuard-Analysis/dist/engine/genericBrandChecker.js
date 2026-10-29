@@ -80,6 +80,20 @@ const UNIVERSAL_RISK_RULES = [
         explanation: 'Unqualified global superlatives weaken brand credibility and invite regulatory scrutiny.',
         suggestion: 'recognized for industry-leading innovation and performance',
     },
+    {
+        regex: /\b(?:the\s+)?world['’]?s\s+best\b/gi,
+        category: 'claim_verification',
+        severity: 'high',
+        explanation: 'Unqualified "world\'s best" superlatives violate advertising standards without verified independent benchmark rankings.',
+        suggestion: 'a leading solution',
+    },
+    {
+        regex: /\bguarantees?\s+perfect\s+results(?:\s+every\s+time)?\b/gi,
+        category: 'claim_verification',
+        severity: 'high',
+        explanation: 'Guaranteeing perfect results is legally indefensible and misleads consumers.',
+        suggestion: 'designed to deliver consistent, high-quality results',
+    },
     // 3. Absolute risk-free & financial promises
     {
         regex: /\b(?:100%\s+risk-free|zero\s+risk(?:\s+guaranteed)?|completely\s+risk-free)\b/gi,
@@ -174,7 +188,7 @@ const INDUSTRY_RULES = {
                 category: 'claim_verification',
                 severity: 'high',
                 explanation: '[Automotive Risk Indicator] Absolute safety or crash-proof claims are legally hazardous and cannot guarantee immunity against all collision physics.',
-                suggestion: 'engineered with 5-star crash safety ratings and advanced collision mitigation systems',
+                suggestion: 'engineered with verified crash-safety ratings and advanced collision mitigation systems',
             },
             {
                 regex: /\b(?:100%\s+puncture-proof|puncture-proof\s+warranty)\b/gi,
@@ -342,6 +356,13 @@ const INDUSTRY_RULES = {
                 suggestion: 'fortified with zero-trust architecture and multi-layered cryptographic defenses',
             },
             {
+                regex: /\b(?:completely\s+)?immune\s+to\s+(?:every|all)\s+cyberattacks?\b/gi,
+                category: 'claim_verification',
+                severity: 'high',
+                explanation: '[Technology Risk Indicator] Claiming complete immunity to all cyberattacks is indefensible in cybersecurity engineering and creates severe legal liability.',
+                suggestion: 'engineered with robust defenses against modern cyberattacks',
+            },
+            {
                 regex: /\bzero\s+downtime\s+guaranteed\s+forever\b/gi,
                 category: 'restricted_phrase',
                 severity: 'high',
@@ -502,6 +523,7 @@ function checkGenericBrandGovernance(content, companyName, industry) {
                     suggestion: rule.suggestion,
                     startIndex,
                     endIndex,
+                    ...(rule.category === 'claim_verification' ? { verificationStatus: 'unsupported' } : {}),
                 });
             }
         }
