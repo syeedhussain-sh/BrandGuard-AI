@@ -82,12 +82,13 @@ function normalizeInputs(inputOrContent, profileOrOptions, maybeOptions) {
         if (!profile.brandId)
             profile.brandId = inputOrContent.brandId;
     }
-    const companyName = (options.companyName ||
+    const rawCompanyName = (options.companyName ||
         profile.companyName ||
         (typeof inputOrContent === 'object' ? inputOrContent.companyName || inputOrContent.brandName : '') ||
         profile.name ||
         profile.brandName ||
         '').trim();
+    const companyName = (0, genericBrandChecker_js_1.getCanonicalBrandName)(rawCompanyName);
     const industry = (options.industry ||
         profile.industry ||
         (typeof inputOrContent === 'object' ? inputOrContent.industry : '') ||
@@ -118,6 +119,8 @@ function hasConfiguredGuidelines(profile) {
     if (Array.isArray(profile.restrictedPhrases) && profile.restrictedPhrases.length > 0)
         return true;
     if (Array.isArray(profile.requiredTerms) && profile.requiredTerms.length > 0)
+        return true;
+    if (Array.isArray(profile.approvedFacts) && profile.approvedFacts.length > 0)
         return true;
     return false;
 }

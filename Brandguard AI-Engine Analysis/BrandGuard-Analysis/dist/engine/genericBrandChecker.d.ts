@@ -16,6 +16,13 @@
  */
 import { AnalysisIssue } from '../types.js';
 /**
+ * Resolves canonical brand capitalization against the known brand registry.
+ * If the brand is registered (e.g. "kfc" -> "KFC", "mcdonalds" -> "McDonald's"),
+ * the registered canonical casing is returned.
+ * If the company is unknown, the user's provided casing is preserved.
+ */
+export declare function getCanonicalBrandName(companyName: string): string;
+/**
  * Primary entry point for Mode B: Universal Generic Brand Governance Analysis.
  *
  * Evaluates text against universal brand safety, clarity, superlatives, and industry risk indicators.

@@ -182,12 +182,40 @@ function findSubstantiatingFact(claimText, approvedFacts, sentenceContext) {
  * Extracts the surrounding sentence for a given substring within content.
  */
 function extractSentence(content, startIndex, endIndex) {
-    const before = content.substring(0, startIndex);
-    const after = content.substring(endIndex);
-    const prevPeriod = Math.max(before.lastIndexOf('.'), before.lastIndexOf('!'), before.lastIndexOf('?'));
-    const start = prevPeriod === -1 ? 0 : prevPeriod + 1;
-    const nextPeriod = after.search(/[.!?]/);
-    const end = nextPeriod === -1 ? content.length : endIndex + nextPeriod + 1;
+    let start = 0;
+    for (let i = startIndex - 1; i >= 0; i--) {
+        const ch = content[i];
+        if (ch === '!' || ch === '?' || ch === '\n') {
+            start = i + 1;
+            break;
+        }
+        if (ch === '.') {
+            const nextChar = i < content.length - 1 ? content[i + 1] : '';
+            const prevChar = i > 0 ? content[i - 1] : '';
+            if (/\d/.test(nextChar) && /\d/.test(prevChar)) {
+                continue; // Decimal point in number (e.g. 99.99)
+            }
+            start = i + 1;
+            break;
+        }
+    }
+    let end = content.length;
+    for (let i = endIndex; i < content.length; i++) {
+        const ch = content[i];
+        if (ch === '!' || ch === '?' || ch === '\n') {
+            end = i + 1;
+            break;
+        }
+        if (ch === '.') {
+            const nextChar = i < content.length - 1 ? content[i + 1] : '';
+            const prevChar = i > 0 ? content[i - 1] : '';
+            if (/\d/.test(nextChar) && /\d/.test(prevChar)) {
+                continue; // Decimal point in number (e.g. 99.99)
+            }
+            end = i + 1;
+            break;
+        }
+    }
     return content.substring(start, end).trim();
 }
 /**

@@ -139,13 +139,29 @@ function produceCorrectedContent(originalContent, issues, profile) {
     if (!issues || issues.length === 0) {
         return originalContent;
     }
-    // Requirement 6: If no reliable correction can be generated, mark as requiring human review
-    const hasHumanReview = issues.some((i) => i.requiresHumanReview);
-    if (hasHumanReview) {
+    // Check if content contains issues requiring human review
+    const humanReviewIssues = issues.filter((i) => i.requiresHumanReview);
+    const otherIssues = issues.filter((i) => !i.requiresHumanReview);
+    // If the entire set of actionable issues only requires human review, return the standard review notice
+    if (humanReviewIssues.length > 0 && otherIssues.length === 0) {
         return '[Requires Human Review] Content references competitor brand information that cannot be safely auto-corrected. Manual editorial review required.';
     }
     const spans = [];
     for (const issue of issues) {
+        // If this specific issue requires human review, isolate its replacement without suppressing other issues
+        if (issue.requiresHumanReview) {
+            if ((issue.category === 'brand_identity' || issue.category === 'competitor_brand' || (issue.id && issue.id.includes('brand_identity'))) &&
+                issue.startIndex !== undefined &&
+                issue.endIndex !== undefined) {
+                const { start, end } = (0, brandMismatchChecker_js_1.getEnclosingSentence)(originalContent, issue.startIndex, issue.endIndex);
+                spans.push({
+                    start,
+                    end,
+                    replacement: '[Requires Human Review: Content references competitor information that cannot be safely auto-corrected]',
+                });
+            }
+            continue;
+        }
         // Competitor / Brand Identity issues
         if (issue.category === 'brand_identity' ||
             issue.category === 'competitor_brand' ||

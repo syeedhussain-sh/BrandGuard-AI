@@ -16,8 +16,33 @@
  * company policies or official regulations.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getCanonicalBrandName = getCanonicalBrandName;
 exports.checkGenericBrandGovernance = checkGenericBrandGovernance;
 const utils_js_1 = require("./utils.js");
+const brandMismatchChecker_js_1 = require("./brandMismatchChecker.js");
+/**
+ * Resolves canonical brand capitalization against the known brand registry.
+ * If the brand is registered (e.g. "kfc" -> "KFC", "mcdonalds" -> "McDonald's"),
+ * the registered canonical casing is returned.
+ * If the company is unknown, the user's provided casing is preserved.
+ */
+function getCanonicalBrandName(companyName) {
+    if (!companyName || !companyName.trim())
+        return companyName;
+    const clean = companyName.trim();
+    const normalizedClean = (0, brandMismatchChecker_js_1.normalizeApostrophes)(clean).toLowerCase();
+    for (const entity of brandMismatchChecker_js_1.KNOWN_BRAND_REGISTRY) {
+        if ((0, brandMismatchChecker_js_1.normalizeApostrophes)(entity.name).toLowerCase() === normalizedClean) {
+            return entity.name;
+        }
+        for (const alias of entity.aliases) {
+            if ((0, brandMismatchChecker_js_1.normalizeApostrophes)(alias).toLowerCase() === normalizedClean) {
+                return entity.name;
+            }
+        }
+    }
+    return clean;
+}
 /**
  * Universal rules that apply to content from ANY industry.
  */
@@ -52,7 +77,7 @@ const UNIVERSAL_RISK_RULES = [
         suggestion: 'engineered for high availability and fault tolerance',
     },
     {
-        regex: /\b100%\s+guaranteed\b/gi,
+        regex: /\b(?:100%\s+guaranteed|guarantee(?:s|d)?\s+100%)(?!\w)/gi,
         category: 'claim_verification',
         severity: 'high',
         explanation: 'Absolute "100% guaranteed" claims create unconditional liability and must specify verified qualification terms or warranty bounds.',
@@ -278,11 +303,25 @@ const INDUSTRY_RULES = {
                 suggestion: 'refreshing herbal blend formulated to support natural hydration',
             },
             {
-                regex: /\bguaranteed\s+weight\s+loss\b/gi,
+                regex: /\b(?:guarantee(?:s|d)?(?:\s+[\w%]+){0,3}\s+weight\s+loss|promises?\s+weight\s+loss)\b/gi,
                 category: 'claim_verification',
                 severity: 'high',
-                explanation: '[Food & Beverage Risk Indicator] Weight loss outcomes vary by individual metabolism and lifestyle; guaranteed loss claims are misleading.',
+                explanation: '[Food & Beverage Claim Verification] Weight loss claims require empirical substantiation from approved clinical evidence; this claim is unsupported without verified clinical trial data.',
                 suggestion: 'designed to support balanced calorie management alongside healthy exercise',
+            },
+            {
+                regex: /\b(?:guarantee(?:s|d)?\s+(?:100%\s+)?freshness|100%\s+fresh(?:ness)?\s+guaranteed)\b/gi,
+                category: 'claim_verification',
+                severity: 'medium',
+                explanation: '[Food & Beverage Claim Verification] Absolute freshness claims require verification against certified supply chain standards and store preparation guidelines.',
+                suggestion: 'prepared fresh daily according to our quality assurance standards',
+            },
+            {
+                regex: /\bguarantee(?:s|d)?\s+(?:100%\s+)?(?:taste|flavor|deliciousness)\b/gi,
+                category: 'claim_verification',
+                severity: 'medium',
+                explanation: '[Food & Beverage Claim Verification] Sensory taste guarantees require reference to satisfaction refund policies or customer survey data.',
+                suggestion: 'committed to serving delicious meals prepared with high-quality ingredients',
             },
             {
                 regex: /\b100%\s+chemical-free\b/gi,
@@ -405,8 +444,9 @@ function checkCompanyNameCasing(content, companyName) {
     const issues = [];
     if (!companyName || companyName.trim().length < 2)
         return issues;
-    const targetName = companyName.trim();
-    const escaped = targetName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Resolve canonical brand name from known registry if registered (e.g. "kfc" -> "KFC")
+    const targetName = getCanonicalBrandName(companyName.trim());
+    const escaped = targetName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/['’]/g, "['’]");
     const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
     let match;
     while ((match = regex.exec(content)) !== null) {
@@ -502,8 +542,16 @@ function checkGenericBrandGovernance(content, companyName, industry) {
     }
     // 2. Aggressive Typography & Punctuation
     issues.push(...checkAggressiveTypography(content));
-    // 3. Universal Risk Rules
-    const allRules = [...UNIVERSAL_RISK_RULES, ...matchIndustryRules(industry)];
+    // 3. Universal Risk Rules & Industry Rules
+    let resolvedIndustry = industry;
+    if (!resolvedIndustry && companyName) {
+        const canonical = getCanonicalBrandName(companyName);
+        const entity = brandMismatchChecker_js_1.KNOWN_BRAND_REGISTRY.find((e) => e.name === canonical);
+        if (entity?.industry) {
+            resolvedIndustry = entity.industry;
+        }
+    }
+    const allRules = [...UNIVERSAL_RISK_RULES, ...matchIndustryRules(resolvedIndustry)];
     for (const rule of allRules) {
         const regex = new RegExp(rule.regex.source, rule.regex.flags);
         let match;

@@ -18,6 +18,13 @@ export interface BrandEntity {
  */
 export declare const KNOWN_BRAND_REGISTRY: BrandEntity[];
 /**
+ * Checks whether an entity alias matches the selected target company.
+ */
+/**
+ * Normalizes straight and typographic apostrophes for consistent matching.
+ */
+export declare function normalizeApostrophes(str: string): string;
+/**
  * Checks content for references to foreign companies or competitor entities
  * that differ from the selected active company.
  *

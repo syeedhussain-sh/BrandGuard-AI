@@ -13,7 +13,7 @@ import { checkRestrictedPhrases } from './engine/restrictedPhrasesChecker.js';
 import { checkRequiredTerms } from './engine/requiredTermsChecker.js';
 import { checkToneGuidelines } from './engine/toneChecker.js';
 import { checkClaimsRequiringVerification, verifyContentClaims } from './engine/claimsChecker.js';
-import { checkGenericBrandGovernance } from './engine/genericBrandChecker.js';
+import { checkGenericBrandGovernance, getCanonicalBrandName } from './engine/genericBrandChecker.js';
 import { checkCompanyIdentityMismatch } from './engine/brandMismatchChecker.js';
 import { checkContextualIndustryMismatch } from './engine/contextualMismatchChecker.js';
 import { produceCorrectedContent } from './engine/contentCorrector.js';
@@ -100,7 +100,7 @@ function normalizeInputs(
     if (!profile.brandId) profile.brandId = inputOrContent.brandId;
   }
 
-  const companyName = (
+  const rawCompanyName = (
     options.companyName ||
     profile.companyName ||
     (typeof inputOrContent === 'object' ? inputOrContent.companyName || inputOrContent.brandName : '') ||
@@ -108,6 +108,8 @@ function normalizeInputs(
     profile.brandName ||
     ''
   ).trim();
+
+  const companyName = getCanonicalBrandName(rawCompanyName);
 
   const industry = (
     options.industry ||
@@ -137,6 +139,7 @@ function hasConfiguredGuidelines(profile: BrandProfile): boolean {
   if (profile.preferredTerminology && Object.keys(profile.preferredTerminology).length > 0) return true;
   if (Array.isArray(profile.restrictedPhrases) && profile.restrictedPhrases.length > 0) return true;
   if (Array.isArray(profile.requiredTerms) && profile.requiredTerms.length > 0) return true;
+  if (Array.isArray(profile.approvedFacts) && profile.approvedFacts.length > 0) return true;
 
   return false;
 }

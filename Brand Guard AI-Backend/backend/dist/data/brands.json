@@ -2,12 +2,10 @@
   {
     "id": "demo-brand",
     "name": "NovaTech",
-    "description": "Enterprise cloud and AI infrastructure provider committed to high reliability and transparent governance.",
+    "description": "Updated description for testing.",
     "tone": [
       "professional",
-      "innovative",
-      "authoritative",
-      "accessible"
+      "innovative"
     ],
     "guidelines": {
       "terminology": [
@@ -28,6 +26,28 @@
             "Script"
           ],
           "explanation": "Reflect modern AI terminology in customer-facing communication."
+        },
+        {
+          "preferred": "AI Co-pilot",
+          "discouraged": [
+            "AI assistant"
+          ],
+          "explanation": "Use AI Co-pilot for product features."
+        },
+        {
+          "preferred": "Enterprise Partner",
+          "discouraged": [
+            "client",
+            "customer"
+          ],
+          "explanation": "Customer relationships are strategic enterprise partnerships."
+        },
+        {
+          "preferred": "cost-effective",
+          "discouraged": [
+            "cheap"
+          ],
+          "explanation": "Use cost-effective for pricing and ROI discussions."
         }
       ],
       "restrictedPhrases": [
@@ -48,14 +68,32 @@
           "severity": "medium",
           "explanation": "Condescending tone undermines accessible brand voice.",
           "suggestion": "as demonstrated"
+        },
+        {
+          "phrase": "guaranteed 100% bug-free",
+          "severity": "high",
+          "explanation": "Absolute reliability claims violate compliance policies.",
+          "suggestion": "engineered for high reliability and resilience"
+        },
+        {
+          "phrase": "can never fail",
+          "severity": "high",
+          "explanation": "Absolute claims without SLA violate compliance policies.",
+          "suggestion": "engineered for fault-tolerant resilience"
         }
       ],
       "requiredTerms": [
         {
           "term": "NovaTech",
-          "context": "Brand name must be mentioned explicitly at least once in public announcements.",
+          "context": "Any public press release or product announcement",
           "severity": "medium",
           "explanation": "Brand name must be mentioned explicitly at least once."
+        },
+        {
+          "term": "Enterprise-grade",
+          "context": "Product capabilities",
+          "severity": "low",
+          "explanation": "Highlight enterprise reliability tier."
         }
       ],
       "claimVerification": [
@@ -68,13 +106,42 @@
       ],
       "toneRules": [
         {
-          "bannedWordOrStyle": "obviously",
-          "suggestion": "as demonstrated",
-          "explanation": "Condescending tone undermines accessible brand voice."
+          "bannedWordOrStyle": "miraculous",
+          "suggestion": "empirically verified",
+          "explanation": "Avoid hyperbole and sensationalism in product announcements."
+        },
+        {
+          "bannedWordOrStyle": "magic",
+          "suggestion": "algorithmic",
+          "explanation": "Enterprise AI systems are deterministic and audited, not magic."
         }
       ]
     },
-    "createdAt": "2026-10-22T05:57:28.746Z",
-    "updatedAt": "2026-10-22T05:57:28.747Z"
+    "approvedFacts": [
+      "NovaTech provides 99.99% availability under our Enterprise SLA.",
+      "NovaTech Cloud Platform is ISO/IEC 27001 certified for cloud security.",
+      "NovaTech was ranked #1 in customer satisfaction by TechReview 2024",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793184216962",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793186521067",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793186715334",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793186836172",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793186864588",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793186880549",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793187693645",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793188024462",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793280899657",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793281595323",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793281913349",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793283016640",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793288405757",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793288758697",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793289069420",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793289131038",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793289196539",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793289213322",
+      "NovaTech guarantees 99.999% uptime under our New Custom Fact Test 1793290112190"
+    ],
+    "createdAt": "2026-10-22T00:00:00.000Z",
+    "updatedAt": "2026-10-29T16:08:33.968Z"
   }
 ]

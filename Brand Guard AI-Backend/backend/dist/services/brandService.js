@@ -100,6 +100,26 @@ async function getAllBrands() {
             return [DEFAULT_DEMO_BRAND];
         }
         const brands = JSON.parse(rawData);
+        // Resilience guarantee: Ensure demo-brand always has approvedFacts populated in production
+        const demo = brands.find((b) => b.id === 'demo-brand');
+        if (demo && (!demo.approvedFacts || demo.approvedFacts.length === 0)) {
+            const srcPath = path_1.default.resolve(__dirname, '../../src/data/brands.json');
+            try {
+                const srcRaw = await promises_1.default.readFile(srcPath, 'utf-8');
+                const srcBrands = JSON.parse(srcRaw);
+                const srcDemo = srcBrands.find((b) => b.id === 'demo-brand');
+                if (srcDemo?.approvedFacts && srcDemo.approvedFacts.length > 0) {
+                    demo.approvedFacts = srcDemo.approvedFacts;
+                    await promises_1.default.writeFile(DATA_FILE_PATH, JSON.stringify(brands, null, 2), 'utf-8');
+                }
+                else {
+                    demo.approvedFacts = DEFAULT_DEMO_BRAND.approvedFacts || [];
+                }
+            }
+            catch {
+                demo.approvedFacts = DEFAULT_DEMO_BRAND.approvedFacts || [];
+            }
+        }
         return brands;
     }
     catch (error) {

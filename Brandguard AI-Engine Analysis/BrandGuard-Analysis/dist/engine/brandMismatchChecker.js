@@ -8,6 +8,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.KNOWN_BRAND_REGISTRY = void 0;
+exports.normalizeApostrophes = normalizeApostrophes;
 exports.getEnclosingSentence = getEnclosingSentence;
 exports.generateCompetitorBrandCorrection = generateCompetitorBrandCorrection;
 exports.checkCompanyIdentityMismatch = checkCompanyIdentityMismatch;
@@ -155,7 +156,7 @@ exports.KNOWN_BRAND_REGISTRY = [
     },
     {
         name: "McDonald's",
-        aliases: ["McDonald's", "McDonalds", 'Big Mac', 'McFlurry', 'Golden Arches'],
+        aliases: ["McDonald's", "McDonalds", "McDonald’s", 'Big Mac', 'McFlurry', 'Golden Arches'],
         industry: 'Food and beverages',
         keywords: ['burger', 'fries', 'big mac', 'happy meal'],
     },
@@ -179,7 +180,7 @@ exports.KNOWN_BRAND_REGISTRY = [
     },
     {
         name: "Domino's",
-        aliases: ["Domino's Pizza", 'Dominos Pizza', "Domino's", 'Dominos'],
+        aliases: ["Domino's Pizza", 'Dominos Pizza', "Domino's", 'Dominos', "Domino’s Pizza", "Domino’s"],
         industry: 'Food and beverages',
         keywords: ['pizza', 'garlic bread'],
     },
@@ -303,17 +304,25 @@ exports.KNOWN_BRAND_REGISTRY = [
 /**
  * Checks whether an entity alias matches the selected target company.
  */
+/**
+ * Normalizes straight and typographic apostrophes for consistent matching.
+ */
+function normalizeApostrophes(str) {
+    if (!str)
+        return '';
+    return str.replace(/[’‘`]/g, "'");
+}
 function isSelectedCompanyMatch(targetCompany, entityName, entityAliases) {
     if (!targetCompany)
         return false;
-    const cleanTarget = targetCompany.trim().toLowerCase();
-    const cleanEntity = entityName.trim().toLowerCase();
+    const cleanTarget = normalizeApostrophes(targetCompany.trim().toLowerCase());
+    const cleanEntity = normalizeApostrophes(entityName.trim().toLowerCase());
     if (cleanTarget === cleanEntity)
         return true;
     if (cleanTarget.includes(cleanEntity) || cleanEntity.includes(cleanTarget))
         return true;
     for (const alias of entityAliases) {
-        const cleanAlias = alias.trim().toLowerCase();
+        const cleanAlias = normalizeApostrophes(alias.trim().toLowerCase());
         if (cleanTarget === cleanAlias)
             return true;
         if (cleanTarget.includes(cleanAlias) || cleanAlias.includes(cleanTarget))
@@ -555,7 +564,8 @@ function generateCompetitorBrandCorrection(content, startIndex, endIndex, matche
         };
     }
     // 3e. Universal safe replacement fallback for other brands
-    const replacedSentence = sentence.replace(new RegExp(`\\b${escapeRegex(matchedText)}\\b`, 'gi'), cleanSelected);
+    const escapedMatched = escapeRegex(matchedText).replace(/['’]/g, "['’]");
+    const replacedSentence = sentence.replace(new RegExp(`\\b${escapedMatched}\\b`, 'gi'), cleanSelected);
     return {
         canCorrect: true,
         requiresHumanReview: false,
@@ -589,7 +599,7 @@ function checkCompanyIdentityMismatch(content, selectedCompany, selectedIndustry
         // match before shorter substrings (e.g. "Nova")
         const sortedAliases = [...entity.aliases].sort((a, b) => b.length - a.length);
         for (const alias of sortedAliases) {
-            const escaped = escapeRegex(alias);
+            const escaped = escapeRegex(alias).replace(/['’]/g, "['’]");
             const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
             let match;
             while ((match = regex.exec(content)) !== null) {
